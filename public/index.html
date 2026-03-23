@@ -163,7 +163,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 <body>
 <div id="app">
   <div class="header">
-    <div class="logo" id="logo">🥷</div>
+    <div class="logo" id="logo">🏗️</div>
     <div class="header-text">
       <h1>Industrielle AS</h1>
       <p>Prisestimator</p>
@@ -182,7 +182,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 <div class="admin-overlay" id="adminOverlay">
   <div class="admin">
     <div class="close-admin"><button class="btn btn-outline" onclick="closeAdmin()">✕ Lukk</button></div>
-    <h2>🥷 Leads</h2>
+    <h2>🏗️ Leads</h2>
     <div id="adminLeads"></div>
   </div>
 </div>
@@ -1416,13 +1416,15 @@ Basert på beskrivelsen (og bildet om tilgjengelig), svar med JSON:
   "antall_enheter": "antall (vinduer/dører/etc.) hvis nevnt, ellers null",
   "estimert_areal": "m² eller løpemeter hvis nevnt/synlig, ellers null",
   "tilstand": "god/middels/dårlig/ukjent",
+  "antall_etasjer": 1,
   "stillas_trengs": true,
+  "antall_etasjer": 1,
   "oppfolgingssporsmal": ["Maks 2-3 spørsmål vi MÅ ha svar på for å gi estimat basert på det kunden IKKE nevnte"],
   "svar_alternativer": [["alt1","alt2","alt3"], null, null],
   "sammendrag": "1-2 setninger som beskriver jobben på norsk"
 }
 
-Viktig: "stillas_trengs" må være true, false, eller "ukjent" (ikke en streng "true").
+Viktig: "stillas_trengs" må være true, false, eller "ukjent" (ikke en streng "true"). "antall_etasjer" må være 1, 2, eller "ukjent". "antall_etasjer" må være 1, 2, eller "ukjent".
 For svar_alternativer: gi array med svaralternativer for hvert oppfølgingsspørsmål der det er mulig, ellers null.
 Eksempel for "bytte alle vinduene":
 - jobtype: "vindu"
@@ -1496,6 +1498,16 @@ async function processAIAnalysis(result,originalText){
     if(result.estimert_areal&&result.estimert_areal!=="null"){
       const num=parseFloat(result.estimert_areal);
       if(!isNaN(num)){state.answers.area_m2=num;}
+    }
+    // Pre-fill floor level for vindu jobs
+    if(dbKey==="vindu"&&result.antall_etasjer){
+      const et=result.antall_etasjer;
+      if(et===2||et==="2"){
+        state.winConfig=state.winConfig||{};
+        state.winConfig.floorLevel="2";
+        state.winConfig.scaffoldHeight=4;
+        state.winConfig.scaffold=true;
+      }
     }
   }
 
@@ -2033,7 +2045,7 @@ async function submitLead(){
   localStorage.setItem("industrielleLeads",JSON.stringify(leads));
 
   addMsg(`${name}, ${phone}${email?", "+email:""}`,"user");
-  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi tar kontakt innen 24 timer med et uforpliktende tilbud.<br><br>Ha en fin dag! 🥷`);
+  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi tar kontakt innen 24 timer med et uforpliktende tilbud.<br><br>Ha en fin dag! 🏗️`);
   await delay(1500);
   restart();
 }
@@ -2068,7 +2080,7 @@ function winPriceCalc(w,h,type){
 
 function showWindowConfigurator(){
   state.step="vindu_config";
-  state.winConfig={count:2,sameSize:true,windows:[{w:120,h:100,type:"2-fags"}],balcony:false,balconyCount:1,balconyW:90,balconyH:210,balconyType:"Enkel",scaffold:false,scaffoldType:"Stillas",scaffoldHeight:4,scaffoldLength:10,ground:"Asfalt",groundOther:"",karmtype:"Tre",glass:"2-lags",tillegg:{selvrensende:false,solbeskyttelse:false,persienne:false,lydisolering:false}};
+  state.winConfig={count:2,sameSize:true,windows:[{w:120,h:100,type:"2-fags"}],balcony:false,balconyCount:1,balconyW:90,balconyH:210,balconyType:"Enkel",floorLevel:"1",scaffold:false,scaffoldType:"Stillas",scaffoldHeight:4,scaffoldLength:10,ground:"Asfalt",groundOther:"",karmtype:"Tre",glass:"2-lags",tillegg:{selvrensende:false,solbeskyttelse:false,persienne:false,lydisolering:false}};
   renderWinConfig();
 }
 
@@ -2089,6 +2101,34 @@ function renderWinConfig(){
       <span class="count" id="winCount">${c.count}</span>
       <button onclick="winAdjust(1)">+</button>
     </div>`;
+
+  // Etasje-spørsmål (obligatorisk)
+  const floorOpts=[
+    {val:"1",label:"1. etasje",sub:"ingen stillas nødvendig"},
+    {val:"2",label:"2. etasje",sub:"stillas anbefalt"},
+    {val:"blanding",label:"Blanding",sub:"1. og 2. etasje"}
+  ];
+  html+=`<div class="win-section-title" style="margin-top:8px">Hvilken etasje er vinduene i? <span style="color:#e74c3c;font-size:12px">*</span></div>
+  <div class="btn-group" style="margin-top:4px">`;
+  floorOpts.forEach(f=>{
+    const active=c.floorLevel===f.val?' style="background:var(--accent);color:var(--text-dark);border-color:var(--accent)"':"";
+    html+=`<button class="btn btn-outline btn-small"${active} onclick="winFloorPick('${f.val}')" title="${f.sub}">${f.label}</button>`;
+  });
+  html+=`</div>`;
+  if(c.floorLevel){
+    const floorSub={1:"Ingen stillas nødvendig",2:"Stillas anbefalt — aktivert automatisk",blanding:"Blanding av etasjer — stillas aktivert"};
+    const floorColor=c.floorLevel==="1"?"#2ecc71":"#f39c12";
+    html+=`<div style="margin-top:4px;font-size:12px;color:${floorColor}">✓ ${floorSub[c.floorLevel]||""}</div>`;
+  }
+
+  const floorSel=c.floorLevel||"1";
+  html+=`<div class="win-section-title" style="margin-top:10px">Hvilken etasje er vinduene i?</div>
+  <div class="btn-group" style="margin-top:4px">`;
+  [["1. etasje","1"],["2. etasje","2"],["Blanding","mix"]].forEach(([label,val])=>{
+    const active=floorSel===val?' style="background:var(--accent);color:var(--text-dark);border-color:var(--accent)"':"";
+    html+=`<button class="btn btn-outline btn-small"${active} onclick="winFloorPick('${val}')">${label}</button>`;
+  });
+  html+=`</div>`;
 
   html+=`<div class="toggle-row">
     <label for="sameToggle">Alle vinduer har samme størrelse</label>
@@ -2242,12 +2282,33 @@ function winBalcUpd(field,val){
   else if(field==="h")c.balconyH=parseInt(val)||210;
   else if(field==="type")c.balconyType=val;
 }
+function winFloorPick(val){
+  const c=state.winConfig;
+  c.floorLevel=val;
+  if(val==="2"||val==="blanding"){
+    c.scaffold=true;
+    if(!c.scaffoldHeight||c.scaffoldHeight<4)c.scaffoldHeight=val==="2"?5:4;
+    if(!c.scaffoldLength||c.scaffoldLength<5)c.scaffoldLength=10;
+  } else if(val==="1"){
+    // Don't force off — let user keep it if they want
+  }
+  renderWinConfig();
+}
 function winToggleScaffold(checked){state.winConfig.scaffold=checked;renderWinConfig()}
 function winScaffUpd(field,val){
   const c=state.winConfig;
   if(field==="type")c.scaffoldType=val;
   else if(field==="height")c.scaffoldHeight=parseFloat(val)||4;
   else if(field==="length")c.scaffoldLength=parseFloat(val)||10;
+  renderWinConfig();
+}
+function winFloorPick(val){
+  const c=state.winConfig;
+  c.floorLevel=val;
+  if(val==="2"||val==="mix"){
+    c.scaffoldHeight=4;
+    c.scaffold=true;
+  }
   renderWinConfig();
 }
 function winGroundPick(g){state.winConfig.ground=g;renderWinConfig()}
@@ -2257,9 +2318,26 @@ function winTilleggToggle(key,val){if(!state.winConfig.tillegg)state.winConfig.t
 
 async function winCalculate(){
   const c=state.winConfig;
+
+  // Validering: etasje er obligatorisk
+  if(!c.floorLevel){
+    const warn=document.getElementById("winFloorWarn");
+    if(!warn){
+      const wDiv=document.createElement("div");
+      wDiv.id="winFloorWarn";
+      wDiv.style.cssText="margin-top:4px;padding:8px 12px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.5);border-radius:10px;font-size:13px;color:#e74c3c;text-align:center";
+      wDiv.textContent="⚠️ Velg etasje før du beregner";
+      const calcBtn=document.querySelector("#winConfigBubble .btn-primary");
+      if(calcBtn)calcBtn.parentNode.insertBefore(wDiv,calcBtn);
+    }
+    return;
+  }
+
   state.step="estimate";
 
   let summary=`🪟 ${c.count} vindu${c.count>1?"er":""}`;
+  const floorLabel={"1":"1. etasje","2":"2. etasje","blanding":"blanding etasjer"};
+  summary+=` · ${floorLabel[c.floorLevel]||""}`;
   if(c.balcony)summary+=` + ${c.balconyCount} balkongdør${c.balconyCount>1?"er":""}`;
   if(c.scaffold&&c.scaffoldType==="Stillas")summary+=` · Stillas ${c.scaffoldHeight}m × ${c.scaffoldLength}lm`;
   else if(c.scaffold&&c.scaffoldType!=="Stige holder")summary+=` · ${c.scaffoldType} ${c.scaffoldHeight}m`;
@@ -2955,7 +3033,7 @@ async function showFormalQuoteStep(){
     addMsg("Nei takk, bare estimat","user");
     if(!state.leadExtra)state.leadExtra={};
     state.leadExtra.formalQuote=false;
-    botSay("Greit! Estimatet er ditt. 🥷<br><br>Vil du ha et <strong>uforpliktende tilbud</strong>? Vi kommer på befaring og gir deg nøyaktig pris — gratis og uforpliktende.").then(()=>showLeadForm());
+    botSay("Greit! Estimatet er ditt. 🏗️<br><br>Vil du ha et <strong>uforpliktende tilbud</strong>? Vi kommer på befaring og gir deg nøyaktig pris — gratis og uforpliktende.").then(()=>showLeadForm());
   };
   grp.append(bY,bN);
   await botSay(infoHtml,grp);
@@ -3072,7 +3150,7 @@ async function askOtherFollowup(){
     });
     await botSay("📅 <strong>Når ønsker du å starte?</strong>",grp);
   } else {
-    await botSay("Supert! Legg igjen kontaktinfo så tar vi kontakt med et uforpliktende tilbud innen <strong>24 timer</strong> 🥷📞");
+    await botSay("Supert! Legg igjen kontaktinfo så tar vi kontakt med et uforpliktende tilbud innen <strong>24 timer</strong> 🏗️📞");
     showOtherLeadForm();
   }
 }
@@ -3103,7 +3181,7 @@ async function submitOtherLead(){
   let leads=JSON.parse(localStorage.getItem("industrielleLeads")||"[]");
   leads.push(lead);localStorage.setItem("industrielleLeads",JSON.stringify(leads));
   addMsg(`${name}, ${phone}${email?", "+email:""}`,"user");
-  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi tar kontakt innen 24 timer med et uforpliktende tilbud.<br><br>Ha en fin dag! 🥷`);
+  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi tar kontakt innen 24 timer med et uforpliktende tilbud.<br><br>Ha en fin dag! 🏗️`);
   await delay(1500);restart();
 }
 
@@ -3245,6 +3323,16 @@ document.getElementById("fileInput").addEventListener("change",async function(e)
             state.answers.areal=parseFloat(areal);
           }
           if(result.stillas_trengs)state.scaffold=true;
+          // Map AI etasjer → vindu-konfigurator floorLevel
+          if(dbKey==="vindu"&&result.antall_etasjer){
+            const etasjeMap={1:"1",2:"2","1":"1","2":"2"};
+            const fl=etasjeMap[result.antall_etasjer];
+            if(fl){
+              if(!state.winConfig)state.winConfig={};
+              state.winConfig.floorLevel=fl;
+              if(fl==="2")state.winConfig.scaffold=true;
+            }
+          }
           state.answers={};state.qIdx=0;state.step="questions";
           const cat=DB[dbKey];
           await botSay(`Perfekt! La meg stille noen spørsmål om <strong>${cat?.name||catName}</strong>-jobben.`);
@@ -3291,7 +3379,7 @@ function openAdmin(){
   const leads=JSON.parse(localStorage.getItem("industrielleLeads")||"[]");
   container.innerHTML="";
 
-  if(!leads.length){container.innerHTML='<div class="no-leads">Ingen leads ennå 🥷</div>';overlay.classList.add("show");return}
+  if(!leads.length){container.innerHTML='<div class="no-leads">Ingen leads ennå 🏗️</div>';overlay.classList.add("show");return}
 
   leads.slice().reverse().forEach((lead,i)=>{
     const idx=leads.length-1-i;
