@@ -1437,7 +1437,7 @@ async function submitJobText(){
       } else {
         const dataUrl=await new Promise(r=>{const rd=new FileReader();rd.onload=ev=>r(ev.target.result);rd.readAsDataURL(file)});
         state.mediaFiles.push({base64:dataUrl.split(",")[1],mime:file.type||"image/jpeg",preview:dataUrl,isVideo:false});
-        if(i===0)state.uploadedImg=dataUrl;
+        if(!state.uploadedImg)state.uploadedImg=dataUrl;
         const thumb=el("img");thumb.src=dataUrl;thumb.style.cssText="width:72px;height:54px;object-fit:cover;border-radius:8px;border:1.5px solid var(--accent)";
         previewRow.appendChild(thumb);
       }
