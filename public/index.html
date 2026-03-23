@@ -188,6 +188,9 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 </div>
 
 <script>
+// ─── Config ───
+const CAL_URL = "https://cal.com/industrielle";
+
 // ─── Category Grouping ───
 const MAIN_GROUPS = {
   utvendig: {
@@ -1298,9 +1301,25 @@ async function botSay(html,extra){
 // ─── Flow ───
 async function start(){
   await delay(500);
-  await botSay("Hei! 👋 Jeg er din prisassistent for håndverksprosjekter.");
+  await botSay("Hei! 👋 Jeg er din prisassistent for Industrielle AS.");
   await delay(300);
-  askJobDescription();
+
+  const btnGroup=el("div","btn-group");
+  btnGroup.style.cssText="flex-direction:column;gap:12px;margin-top:8px";
+
+  const btn1=el("button","btn btn-primary","");
+  btn1.style.cssText="width:100%;min-height:72px;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:16px;padding:16px";
+  btn1.innerHTML=`<span style="font-size:22px">📸 Beskriv jobben</span><span style="font-size:13px;font-weight:400;opacity:.85">Send tekst + bilde — vi gir deg prisestimat</span>`;
+  btn1.onclick=()=>{addMsg("📸 Beskriv jobben","user");askJobDescription()};
+
+  const btn2=el("button","btn btn-outline","");
+  btn2.style.cssText="width:100%;min-height:72px;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:16px;padding:16px";
+  btn2.innerHTML=`<span style="font-size:22px">🔨 Velg kategori selv</span><span style="font-size:13px;font-weight:400;opacity:.85">Naviger og velg hva du trenger</span>`;
+  btn2.onclick=()=>{addMsg("🔨 Velg kategori selv","user");state.step="choose_cat";showMainCategories()};
+
+  btnGroup.appendChild(btn1);
+  btnGroup.appendChild(btn2);
+  await botSay("Hvordan vil du gå frem?",btnGroup);
 }
 
 // ─── New: Text + Image first workflow ───
@@ -2010,13 +2029,32 @@ async function generateEstimate(){
 
 function showLeadForm(){
   state.step="lead";
+
+  // Cal.com booking option
+  const calWrapper=el("div","");
+  calWrapper.style.cssText="margin-bottom:16px;padding:14px;background:rgba(239,16,6,.06);border:1.5px solid rgba(239,16,6,.2);border-radius:16px";
+  calWrapper.innerHTML=`<p style="font-size:14px;color:var(--text-dim);margin-bottom:10px">📅 Foretrekker du å booke et tidspunkt selv?</p>`;
+  const calBtn=el("button","btn btn-primary","📅 Book tidspunkt");
+  calBtn.style.cssText="width:100%;margin-bottom:8px;min-height:52px;font-size:15px;border-radius:14px";
+  calBtn.onclick=()=>window.open(CAL_URL,"_blank");
+  const ringBtn=el("button","btn btn-outline","📞 Nei, ring meg");
+  ringBtn.style.cssText="width:100%;min-height:48px;font-size:15px;border-radius:14px";
+  ringBtn.onclick=()=>{
+    calWrapper.style.display="none";
+    formWrapper.style.display="block";
+  };
+  calWrapper.appendChild(calBtn);
+  calWrapper.appendChild(ringBtn);
+
+  const formWrapper=el("div","");
+  formWrapper.style.display="none";
   const form=el("div","lead-form");
   form.innerHTML=`
     <input type="text" id="leadName" placeholder="Navn" autocomplete="name">
     <input type="tel" id="leadPhone" placeholder="Telefon" autocomplete="tel">
     <input type="email" id="leadEmail" placeholder="E-post (valgfritt)" autocomplete="email">
   `;
-  const btn=el("button","btn btn-primary","📨 Ja, send kontaktinfo");
+  const btn=el("button","btn btn-primary","📨 Send kontaktinfo");
   btn.style.marginTop="4px";
   btn.onclick=submitLead;
   form.appendChild(btn);
@@ -2026,8 +2064,11 @@ function showLeadForm(){
   skip.onclick=()=>{addMsg("Nei takk, bare estimat","user");restart()};
   form.appendChild(skip);
 
+  formWrapper.appendChild(form);
+
   const d=el("div","msg bot");
-  d.appendChild(form);
+  d.appendChild(calWrapper);
+  d.appendChild(formWrapper);
   d.style.maxWidth="95%";
   chat.appendChild(d);
   chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
