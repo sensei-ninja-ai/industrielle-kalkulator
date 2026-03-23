@@ -2024,6 +2024,12 @@ async function generateEstimate(){
     </div>`;
 
   await botSay(estHtml);
+  // Show alternatives button
+  const altBtn=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
+  altBtn.style.cssText="width:100%;margin-top:4px";
+  altBtn.onclick=()=>{altBtn.remove();showAlternatives()};
+  const altWrap=el("div","msg bot");altWrap.appendChild(altBtn);altWrap.style.maxWidth="95%";
+  chat.appendChild(altWrap);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
   showFormalQuoteStep();
 }
 
@@ -2498,6 +2504,12 @@ async function winCalculate(){
     </div>`;
 
   await botSay(estHtml);
+  // Show alternatives button
+  const altBtn2=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
+  altBtn2.style.cssText="width:100%;margin-top:4px";
+  altBtn2.onclick=()=>{altBtn2.remove();showAlternatives()};
+  const altWrap2=el("div","msg bot");altWrap2.appendChild(altBtn2);altWrap2.style.maxWidth="95%";
+  chat.appendChild(altWrap2);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
   showFormalQuoteStep();
 }
 
@@ -3044,6 +3056,71 @@ async function romCalculate(){
   showFormalQuoteStep();
 }
 
+// ─── 3 Prisklasse-alternativer ───
+function getCategoryMaterials(catKey){
+  const mats={
+    kledning:{standard:["Stående panel (standard)","Vindsperre standard","Lekter gran"],anbefalt:["Liggende panel (middels)","Vindsperre Plus","Trykkimpregnert lekter"],premium:["Premium kledning (eik/osp)","Vindsperre Pro","Aluminiumsbeslag"]},
+    tak:{standard:["Shingel/takpapp (standard)","Undertak standard","Stål beslag"],anbefalt:["Takstein betong (middels)","Undertak Pro","Rustfritt beslag"],premium:["Takstein tegl / stålplater premium","Undertak topp","Kobberbeslag"]},
+    bad:{standard:["Standard keramikkflis","Standard dusjhjørne","Standard servant"],anbefalt:["Middels porselensflis","Middels walk-in dusj","Design servant"],premium:["Premium designflis","Innfelt dusj / fritstående kar","Premium stone/marmor servant"]},
+    gulv:{standard:["Standard laminat","Enkel fuktsperre","Standard lister"],anbefalt:["Parkett eik (standard)","Dampsperre Pro","Eik lister"],premium:["Premium parkett / vinyl","Topplags fuktsperre","Designlister"]},
+    maling:{standard:["Budget maling 2 strøk","Standard primer","Enkel sparkling"],anbefalt:["Standard maling 2 strøk","Mellomstrøk + primer","Grundig sparkling"],premium:["Premium maling 3 strøk","Primer + understrøk","Profesjonell sparkling"]},
+    terrasse:{standard:["Trykkimpregnert (standard)","Betongpilarer","Standard skruer"],anbefalt:["Royal/Kebony (middels)","Betongfundament","Rustfritt beslag"],premium:["Kebony Clear / kompositt premium","Støpt fundament","Premium beslag"]},
+    betong:{standard:["Standard betong C25","Standard armering","Rå finish"],anbefalt:["Betong C30","Ekstra armering","Pusset finish"],premium:["Betong C35 fiber","Maksimal armering","Polert finish"]},
+    gips:{standard:["Standard gips 12.5mm","Enkeltlag","Standard skruer"],anbefalt:["Brannhemmende gips","Enkeltlag + lyd","Profesjonelle profiler"],premium:["Dobbellag brann/lyd","Akustikkgips","Rustfrie profiler"]},
+    isolering:{standard:["Mineralull standard","Enkel dampsperre","Standard lekter"],anbefalt:["Trefiber (lyd+miljø)","Pro dampsperre","Trykkimpregnert lekter"],premium:["XPS/PIR (slim)","Lufttett dampsperre","Aluminiumslekter"]},
+    panel:{standard:["Standard gran/furu","Enkel innfesting","Standard beis"],anbefalt:["Middels kvalitet furu","Lekter+innfesting","2-strøks beis"],premium:["Premium eik/osp","Skjult innfesting","Premium overflatebehandling"]},
+    vindu:{standard:["2-lags glass, tre karm","Standard isolasjon","Standard innfôring"],anbefalt:["2-lags glass, tre-alu","Pro isolasjon","Ferdig belistning"],premium:["3-lags glass, helalu","Tettesikt membran","Skreddersydd innfôring"]},
+    dor:{standard:["Standard dør","Enkelt beslag","Standard karm"],anbefalt:["Middels dør, design","Middels beslag","Innfôret karm"],premium:["Premium dør (massivt tre/stål)","Premium beslag","Lyd/brannisolert karm"]},
+    trapp:{standard:["Gran/furu standard","Standard rekkverk tre","Enkel overflate"],anbefalt:["Eik (middels)","Middels rekkverk","Beist/oljet"],premium:["Hardtre/stål premium","Glass/stål rekkverk","Premium polert finish"]},
+    kjokken:{standard:["Standard innredning (IKEA/enkel)","Standard laminat benkeplate","Enkel belysning"],anbefalt:["Middels innredning","Kvarts/granittbenke","LED belysning"],premium:["Premium skreddersydd","Marmor/naturstein benke","Integrert belysning"]},
+    garasje:{standard:["Uisolert standard kledning","Vippeport","Standard fundament"],anbefalt:["Isolert kledning middels","Seksjonalport manuell","Betongplate"],premium:["Isolert kledning premium","Elektrisk seksjonalport","Armert betongplate"]},
+    bod:{standard:["Enkel spon/finér","Standard vinduer/dør","Enkelt underlag"],anbefalt:["Kledning standard","Middels vinduer/dør","Betongfundament"],premium:["Premium kledning","Premium dør/vinduer","Armert betong + isolasjon"]},
+    stottemur:{standard:["Leca-blokk","Grus drenering","Enkel fundamentering"],anbefalt:["Betong støpt","Drensrør + grus","Armert fundament"],premium:["Naturstein","Full dreneringspakke","Dyp armert fundament"]},
+    innkjorsel:{standard:["Grus/singel","Enkel graving","Ingen kantstein"],anbefalt:["Asfalt/belegningsstein","Standard grunnarbeid","Betongkantstein"],premium:["Naturstein/granittbelegning","Full grunnarbeid","Natursteinkantstein"]},
+    gjerde_port:{standard:["Netting/sperregjerde","Enkel gangport","Enkel stolpefundering"],anbefalt:["Tre (impregnert)","Middels gangport","Betongfundering"],premium:["Smijern/aluminium","Dobbel elektrisk port","Støpt betong"]},
+    pergola:{standard:["Enkel tre, åpen","Betong ankerfeste","Enkel innfesting"],anbefalt:["Tre m/polykarbonat tak","Forsterket anker","Galvanisert beslag"],premium:["Aluminium m/glastak","Innstøpt fundament","Premium beslag"]},
+    grunnarbeid:{standard:["Minigraver planering","Enkel komprimering","Standard grus"],anbefalt:["Gravemaskin graving","Pro komprimering","Pukk bærelag"],premium:["Sprengning + gravemaskin","Maskinell komprimering","Knust stein + geotekstil"]},
+    takrenner:{standard:["Plast takrenner","Standard nedløp","Enkel montering"],anbefalt:["Stål takrenner","Middels nedløp","Pro montering"],premium:["Kobber takrenner","Premium nedløp","Skreddersydd montering"]},
+    vindskier:{standard:["Gran/furu standard","Enkel maling","Standard innfesting"],anbefalt:["Middels tre/kompositt","2-strøks maling","Rustfritt beslag"],premium:["Aluminium/kompositt premium","Premium overflatebehandling","Skjult innfesting"]},
+    mur_flis:{standard:["Standard keramikkflis","Standard flislim","Enkel fuging"],anbefalt:["Middels porselensflis","Pro flislim","Premium fugemasse"],premium:["Premium designflis/naturstein","Epoxy flislim","Skreddersydd fuging"]}
+  };
+  return mats[catKey]||{standard:["Standard materialer","Grunnleggende kvalitet","Enkel finish"],anbefalt:["Middels materialer","God kvalitet","Profesjonell finish"],premium:["Premium materialer","Topp kvalitet","Eksklusiv finish"]};
+}
+
+async function showAlternatives(){
+  const est=state.currentEstimate;
+  if(!est)return;
+  const total=est.total;
+  const catKey=state.cat||"";
+  const mats=getCategoryMaterials(catKey);
+
+  const s=Math.round(total*0.75);
+  const a=Math.round(total*1.0);
+  const p=Math.round(total*1.35);
+
+  const html=`
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+      <div style="padding:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.15);border-radius:14px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">🥉 STANDARD — ~${fmt(s)}</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.7">${mats.standard.map(m=>`• ${m}`).join("<br>")}</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">Greit resultat, lavere budsjett</div>
+      </div>
+      <div style="padding:14px;background:rgba(239,16,6,.08);border:2px solid var(--accent);border-radius:14px;position:relative">
+        <div style="position:absolute;top:-10px;right:12px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">ANBEFALT ✓</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:var(--accent)">🥈 ANBEFALT — ~${fmt(a)}</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.7">${mats.anbefalt.map(m=>`• ${m}`).join("<br>")}</div>
+        <div style="font-size:12px;color:var(--accent);margin-top:6px;font-style:italic">Best verdi for pengene ✓</div>
+      </div>
+      <div style="padding:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,215,0,.25);border-radius:14px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:#f0c040">🥇 PREMIUM — ~${fmt(p)}</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.7">${mats.premium.map(m=>`• ${m}`).join("<br>")}</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">Topp kvalitet, lengst holdbarhet</div>
+      </div>
+    </div>`;
+
+  await botSay(html);
+}
+
 // ─── Formal Quote Step ───
 async function showFormalQuoteStep(){
   state.step="formal_quote";
@@ -3321,6 +3398,8 @@ async function analyzeImageWithVenice(base64Image,mimeType){
 
 // ─── File upload ───
 document.getElementById("fileInput").addEventListener("change",async function(e){
+  // In job_description step, handled by askJobDescription's own handler
+  if(state.step==="job_description")return;
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=async function(ev){
