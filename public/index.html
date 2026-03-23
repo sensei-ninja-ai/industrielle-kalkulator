@@ -1343,7 +1343,8 @@ async function askJobDescription(){
   goBtn.onclick=submitJobText;
   wrapper.appendChild(goBtn);
 
-  const skipLink=el("div","skip-link","Hopp over, velg kategori manuelt");
+  const skipLink=el("button","btn btn-outline","🔨 Velg kategori manuelt");
+  skipLink.style.cssText="width:100%;margin-top:8px";
   skipLink.onclick=()=>{addMsg("Velg kategori manuelt","user");state.step="choose_cat";showMainCategories()};
   wrapper.appendChild(skipLink);
 
