@@ -172,7 +172,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
   </div>
   <div class="chat" id="chat"></div>
   <div class="input-area" id="inputArea">
-    <button class="icon-btn camera" onclick="document.getElementById('fileInput').click()" aria-label="Last opp bilde">📷</button>
+    <button class="icon-btn camera" onclick="document.getElementById('fileInput').click()" aria-label="Last opp bilder og video">📷</button>
     <input type="file" id="fileInput" accept="image/*" capture="environment">
     <textarea id="userInput" rows="1" placeholder="Skriv en melding..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendText()}"></textarea>
     <button class="icon-btn send" onclick="sendText()" aria-label="Send">➤</button>
@@ -1362,7 +1362,7 @@ async function submitJobText(){
   const wrapper=el("div","");
   wrapper.style.cssText="display:flex;flex-direction:column;gap:10px;margin-top:8px";
 
-  const uploadBtn=el("button","btn btn-primary","📸 Last opp bilde");
+  const uploadBtn=el("button","btn btn-primary","📸 Last opp bilder og video");
   uploadBtn.style.cssText="width:100%;min-height:52px;font-size:15px";
   uploadBtn.onclick=()=>{
     const fi=document.getElementById("fileInput");
@@ -1399,7 +1399,7 @@ async function submitJobText(){
 
   wrapper.appendChild(uploadBtn);
   wrapper.appendChild(skipBtn);
-  await botSay("Flott! Har du et bilde av jobben? 📸",wrapper);
+  await botSay("Flott! Har du bilder eller video av jobben? 📸",wrapper);
 }
 
 async function submitJobDescription(){
@@ -1432,63 +1432,58 @@ async function submitJobDescription(){
 }
 
 async function analyzeJobWithAI(beskrivelse,base64Image,mimeType){
-  const prompt=`Du er en erfaren norsk håndverker som hjelper kunder med prisestimater.
+  const systemPrompt=`Du er en prisassistent for et norsk byggefirma. Analyser kundens beskrivelse og eventuelt bilde.
 
-Kunden beskriver: "${beskrivelse||"(ingen tekst, analyser bilde)"}"
-${base64Image?"[Se vedlagt bilde]":""}
-
-Basert på beskrivelsen (og bildet om tilgjengelig), svar med JSON:
+SVAR ALLTID med ren JSON (ingen markdown, ingen backtick-blokker):
 {
-  "jobtype": "DB-nøkkel: vindu/kledning/tak/bad/gulv/maling/terrasse/betong/gips/annet",
-  "antall_enheter": "antall (vinduer/dører/etc.) hvis nevnt, ellers null",
-  "estimert_areal": "m² eller løpemeter hvis nevnt/synlig, ellers null",
-  "tilstand": "god/middels/dårlig/ukjent",
-  "antall_etasjer": 1,
-  "stillas_trengs": true,
-  "antall_etasjer": 1,
-  "oppfolgingssporsmal": ["Maks 2-3 spørsmål vi MÅ ha svar på for å gi estimat basert på det kunden IKKE nevnte"],
-  "svar_alternativer": [["alt1","alt2","alt3"], null, null],
-  "sammendrag": "1-2 setninger som beskriver jobben på norsk"
+  "jobtype": "en av: vindu, kledning, tak, bad, gulv, maling, terrasse, betong, gips, dor, panel, isolering, kjokken, trapp, garasje, bod, innkjorsel, stottemur, gjerde_port, pergola, grunnarbeid, mur_flis, romoppussing, garderobe, vindskier, takrenner, annet",
+  "sammendrag": "1-2 setninger som beskriver jobben på norsk",
+  "estimert_areal": null,
+  "antall_etasjer": null,
+  "stillas_trengs": null,
+  "kontrollsporsmal": [
+    {"sporsmal": "Tekst?", "alternativer": ["Alt 1", "Alt 2", "Alt 3"]}
+  ]
 }
 
-Viktig: "stillas_trengs" må være true, false, eller "ukjent" (ikke en streng "true"). "antall_etasjer" må være 1, 2, eller "ukjent". "antall_etasjer" må være 1, 2, eller "ukjent".
-For svar_alternativer: gi array med svaralternativer for hvert oppfølgingsspørsmål der det er mulig, ellers null.
-Eksempel for "bytte alle vinduene":
-- jobtype: "vindu"
-- antall_enheter: "alle"
-- oppfolgingssporsmal: ["Hvor mange vinduer totalt?","Hvilken type vinduer ønsker du?"]
-- svar_alternativer: [["3-5","6-10","11-15","16+"],["Tre","Tre-alu","Helalu"]]
-Svar BARE med JSON.`;
+REGLER for kontrollsporsmal:
+- Maks 3 spørsmål
+- Spør BARE om det du IKKE kan utlede fra beskrivelse/bilde
+- Bruk korte norske spørsmål
+- Gi alltid 2-4 alternativer per spørsmål
+
+Eksempler:
+- For "bytte vinduer": spør om karmtype, glasstype, antall
+- For "male fasade": spør om antall etasjer, tilstand, farge
+- For "nytt bad": spør om størrelse, dusjtype, fliskvalitet`;
+
+  const parts=[{text:systemPrompt+"\n\nKundens beskrivelse: "+(beskrivelse||"(ingen tekst, analyser bilde)")}];
+  if(base64Image&&mimeType){parts.push({inline_data:{mime_type:mimeType,data:base64Image}});}
 
   try{
-    // Try Gemini first
-    const parts=[{text:prompt}];
-    if(base64Image&&mimeType){
-      parts.push({inline_data:{mime_type:mimeType,data:base64Image}});
-    }
     const resp=await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyDieV5GbNzcI-B4LfLUKqLHHfj4R_4uxoI',
       {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts}],generation_config:{temperature:0.1,max_output_tokens:800}})}
+      body:JSON.stringify({contents:[{parts}],generationConfig:{temperature:0.1,maxOutputTokens:800}})}
     );
     const data=await resp.json();
     const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    return JSON.parse(txt.replace(/```json\n?|\n?```/g,'').trim());
+    const clean=txt.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    return JSON.parse(clean);
   }catch(e1){
-    // Fallback to Venice
     try{
-      const msgs=[{role:'user',content:[{type:'text',text:prompt}]}];
-      if(base64Image&&mimeType){
-        msgs[0].content.push({type:'image_url',image_url:{url:`data:${mimeType};base64,${base64Image}`}});
-      }
+      const msgContent=base64Image&&mimeType
+        ?[{type:'text',text:systemPrompt+"\n\nKundens beskrivelse: "+(beskrivelse||"(ingen tekst)")},{type:'image_url',image_url:{url:`data:${mimeType};base64,${base64Image}`}}]
+        :[{type:'text',text:systemPrompt+"\n\nKundens beskrivelse: "+(beskrivelse||"(ingen tekst)")}];
       const resp2=await fetch('https://api.venice.ai/api/v1/chat/completions',{
         method:'POST',
         headers:{'Authorization':'Bearer VENICE-INFERENCE-KEY-NUxXG_6uqoIdW0W5RBHAi3OAZKGmbk1jQDr2h-Mf3R','Content-Type':'application/json'},
-        body:JSON.stringify({model:'qwen3-vl-235b-a22b',messages:msgs,max_tokens:800})
+        body:JSON.stringify({model:'qwen3-vl-235b-a22b',messages:[{role:'user',content:msgContent}],max_tokens:800})
       });
       const data2=await resp2.json();
       const txt2=data2.choices?.[0]?.message?.content||'';
-      return JSON.parse(txt2.replace(/```json\n?|\n?```/g,'').trim());
+      const clean2=txt2.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+      return JSON.parse(clean2);
     }catch{return null;}
   }
 }
@@ -1504,102 +1499,91 @@ const aiJobtypeToDBKey={
   terrasse:'terrasse',
   betong:'betong',
   gips:'gips',
+  dor:'dor',
+  panel:'panel',
+  isolering:'isolering',
+  kjokken:'kjokken',
+  trapp:'trapp',
+  garasje:'garasje',
+  bod:'bod',
+  innkjorsel:'innkjorsel',
+  stottemur:'stottemur',
+  gjerde_port:'gjerde_port',
+  pergola:'pergola',
+  grunnarbeid:'grunnarbeid',
+  mur_flis:'mur_flis',
+  romoppussing:'romoppussing',
+  garderobe:'garderobe',
+  vindskier:'vindskier',
+  takrenner:'takrenner',
   annet:null
 };
 
 async function processAIAnalysis(result,originalText){
   state.aiResult=result;
   const dbKey=aiJobtypeToDBKey[(result.jobtype||"").toLowerCase()]||null;
-  const catName=dbKey?(DB[dbKey]?.name||result.jobtype):result.jobtype;
 
-  // Show summary
-  const summaryMsg=`👍 ${result.sammendrag||("Jeg skjønner, "+result.jobtype+"!")}`;
-  await botSay(summaryMsg);
+  await botSay(`👍 ${result.sammendrag||"Forstått! La meg hjelpe deg videre."}`);
 
-  // Pre-fill known data
   if(dbKey){
-    state.cat=dbKey;
-    state.answers={};
-    state.qIdx=0;
-    // Pre-fill area if known
-    if(result.estimert_areal&&result.estimert_areal!=="null"){
-      const num=parseFloat(result.estimert_areal);
-      if(!isNaN(num)){state.answers.area_m2=num;}
+    state.cat=dbKey;state.answers={};state.qIdx=0;
+    if(result.estimert_areal!==null&&result.estimert_areal!==undefined&&!isNaN(Number(result.estimert_areal))){
+      state.answers.area_m2=Number(result.estimert_areal);
     }
-    // Pre-fill floor level for vindu jobs
-    if(dbKey==="vindu"&&result.antall_etasjer){
-      const et=result.antall_etasjer;
-      if(et===2||et==="2"){
-        state.winConfig=state.winConfig||{};
-        state.winConfig.floorLevel="2";
-        state.winConfig.scaffoldHeight=4;
-        state.winConfig.scaffold=true;
-      }
+    if(dbKey==="vindu"&&(result.antall_etasjer===2||result.antall_etasjer==="2")){
+      if(!state.winConfig)state.winConfig={};
+      state.winConfig.floorLevel="2";state.winConfig.scaffold=true;state.winConfig.scaffoldHeight=4;
     }
   }
 
-  // Ask follow-up questions one at a time
-  const questions=result.oppfolgingssporsmal||[];
-  const alts=result.svar_alternativer||[];
-  state.aiFollowup={questions,alts,idx:0,dbKey,catName};
+  // Use new kontrollsporsmal format with {sporsmal, alternativer} objects
+  const kontroll=result.kontrollsporsmal||[];
+  state.aiFollowup={kontroll,idx:0,dbKey};
+  state.aiFollowupAnswers=[];
   askNextAIFollowup();
 }
 
 async function askNextAIFollowup(){
   const fu=state.aiFollowup;
-  if(!fu||fu.idx>=fu.questions.length){
-    // Done with AI follow-ups → go to category flow
-    finishAIFollowup();
-    return;
-  }
-  const q=fu.questions[fu.idx];
-  const alts=fu.alts[fu.idx]||null;
+  if(!fu||fu.idx>=fu.kontroll.length){finishAIFollowup();return;}
 
-  if(alts&&alts.length){
+  const item=fu.kontroll[fu.idx];
+  const sporsmal=item.sporsmal||item;
+  const alts=item.alternativer||[];
+
+  if(alts.length>0){
     const grp=el("div","btn-group");
     alts.forEach(a=>{
       const b=el("button","btn btn-outline btn-small",a);
       b.onclick=()=>{
         addMsg(a,"user");
-        state.aiFollowupAnswers=state.aiFollowupAnswers||{};
-        state.aiFollowupAnswers[fu.idx]=a;
+        state.aiFollowupAnswers.push(a);
         fu.idx++;
         delay(200).then(()=>askNextAIFollowup());
       };
       grp.appendChild(b);
     });
-    // Also allow free text
     const wrapper=el("div","");
     wrapper.appendChild(grp);
     const inp=document.createElement("input");
     inp.type="text";inp.placeholder="Eller skriv selv...";
     inp.style.cssText="width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--text);font-size:14px;outline:none;min-height:44px;margin-top:8px;font-family:inherit";
     inp.onkeydown=e=>{if(e.key==="Enter"&&inp.value.trim()){
-      const v=inp.value.trim();addMsg(v,"user");
-      state.aiFollowupAnswers=state.aiFollowupAnswers||{};
-      state.aiFollowupAnswers[fu.idx]=v;fu.idx++;delay(200).then(()=>askNextAIFollowup());
+      const v=inp.value.trim();addMsg(v,"user");state.aiFollowupAnswers.push(v);fu.idx++;delay(200).then(()=>askNextAIFollowup());
     }};
     wrapper.appendChild(inp);
-    await botSay(q,wrapper);
+    await botSay(sporsmal,wrapper);
   } else {
-    // Free text only
     const wrapper=el("div","");
     const inp=document.createElement("input");
     inp.type="text";inp.placeholder="Skriv svar her...";
     inp.style.cssText="width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--text);font-size:14px;outline:none;min-height:44px;font-family:inherit";
     const btn=el("button","btn btn-primary btn-small","OK →");
     btn.style.cssText="margin-top:6px;width:100%";
-    const submit=()=>{
-      const v=inp.value.trim();if(!v)return;
-      addMsg(v,"user");
-      state.aiFollowupAnswers=state.aiFollowupAnswers||{};
-      state.aiFollowupAnswers[fu.idx]=v;fu.idx++;delay(200).then(()=>askNextAIFollowup());
-    };
-    btn.onclick=submit;
-    inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();submit()}};
-    wrapper.appendChild(inp);
-    wrapper.appendChild(btn);
-    await botSay(q,wrapper);
+    const submit=()=>{const v=inp.value.trim();if(!v)return;addMsg(v,"user");state.aiFollowupAnswers.push(v);fu.idx++;delay(200).then(()=>askNextAIFollowup());};
+    btn.onclick=submit;inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();submit();}};
+    wrapper.appendChild(inp);wrapper.appendChild(btn);
+    await botSay(sporsmal,wrapper);
   }
 }
 
@@ -2106,7 +2090,7 @@ async function submitLead(){
 }
 
 async function restart(){
-  state={step:"welcome",cat:null,answers:{},qIdx:0,currentEstimate:null,uploadedImg:null,scaffold:null,scaffoldDone:false,leadExtra:null,aiResult:null,aiFollowup:null,aiFollowupAnswers:null,pendingImageBase64:null,pendingImageMime:null};
+  state={step:"welcome",cat:null,answers:{},qIdx:0,currentEstimate:null,uploadedImg:null,scaffold:null,scaffoldDone:false,leadExtra:null,aiResult:null,aiFollowup:null,aiFollowupAnswers:[],pendingImageBase64:null,pendingImageMime:null,jobDescText:null};
   await botSay("Har du en annen jobb du vil ha estimat på? 👇");
   askJobDescription();
 }
@@ -3240,7 +3224,7 @@ async function askOtherFollowup(){
     },100);
   } else if(idx===3){
     const grp=el("div","btn-group");
-    const uploadBtn=el("button","btn btn-primary","📸 Last opp bilde");
+    const uploadBtn=el("button","btn btn-primary","📸 Last opp bilder og video");
     uploadBtn.onclick=()=>{
       const fi=document.getElementById("fileInput");
       const handler=async function(e){
