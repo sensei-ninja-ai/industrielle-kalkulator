@@ -432,7 +432,7 @@ const DB = {
       const servantPris={"Enkel":2000,"Dobbel":5000,"Møbel med underskap":11500};
       items.push({n:`Servant: ${a.servant||"Enkel"}`,p:servantPris[a.servant]||2000});
       if(hasVVS){items.push({n:"VVS-materialer (rør, blandebatteri, tilkoblinger)",p:Math.round(20000*mult)})}
-      if(isTotalReno){items.push({n:"Elektriker (varmekabler, lys, vifte)",p:20000})}
+      if(isTotalReno){items.push({n:"Elektriker (varmekabler, lys, vifte)",p:23000})}
       items.push({n:"Div. materialer (speil, skap, tilbehør)",p:Math.round(8000*mult)});
       items.push({n:"Rigg/transport",p:3500});
       items.push({n:"Avfallshåndtering",p:isTotalReno?5000:2500});
@@ -589,8 +589,8 @@ const DB = {
       let items=[
         {n:`${a.type} (${m2} m²)`,p:m2*mp},
         {n:"Undertak/lekter",p:m2*160},
-        {n:"Beslag/takrenner",p:5000+m2*30},
-        {n:"Pipebeslag/gjennomføringer",p:5000},
+        {n:"Beslag/takrenner",p:5800+m2*30},
+        {n:"Pipebeslag/gjennomføringer",p:5800},
         {n:"Container/avfallshåndtering",p:m2*60+2000},
         {n:"Rigg/transport",p:3500}
       ];
@@ -634,18 +634,18 @@ const DB = {
         {n:"Kjøkkeninnredning",p:innredning},
         {n:`Benkeplate (${a.benkeplate})`,p:benkePris[a.benkeplate]||4500}
       ];
-      items.push({n:"Montering arbeid",p:32500});
+      items.push({n:"Montering arbeid",p:37500});
       let workSteps=[{n:"Montering kjøkkeninnredning",h:32500/RATE}];
 
-      if(a.riving==="Ja"){items.push({n:"Riving gammelt kjøkken",p:10000});workSteps.unshift({n:"Riving",h:10000/RATE})}
+      if(a.riving==="Ja"){items.push({n:"Riving gammelt kjøkken",p:11500});workSteps.unshift({n:"Riving",h:10000/RATE})}
       if(a.fliser==="Ja"){items.push({n:`Fliser backsplash (~${Math.round(m2*0.4)} m²)`,p:Math.round(m2*0.4*500)});workSteps.push({n:"Flislegging",h:Math.round(m2*0.4*500)/RATE})}
-      if(a.vvs==="Ja, litt"){items.push({n:"VVS-arbeid (mindre endring)",p:5000});workSteps.push({n:"VVS",h:5000/RATE})}
-      else if(a.vvs==="Ja, mye"){items.push({n:"VVS-arbeid (større omlegging)",p:15000});workSteps.push({n:"VVS",h:15000/RATE})}
-      if(a.elektro==="Delvis"){items.push({n:"Elektro (delvis)",p:5000});workSteps.push({n:"Elektro",h:5000/RATE})}
-      else if(a.elektro==="Ja, nytt"){items.push({n:"Elektro (nytt opplegg)",p:15000});workSteps.push({n:"Elektro",h:15000/RATE})}
+      if(a.vvs==="Ja, litt"){items.push({n:"VVS-arbeid (mindre endring)",p:5800});workSteps.push({n:"VVS",h:5000/RATE})}
+      else if(a.vvs==="Ja, mye"){items.push({n:"VVS-arbeid (større omlegging)",p:17000});workSteps.push({n:"VVS",h:15000/RATE})}
+      if(a.elektro==="Delvis"){items.push({n:"Elektro (delvis)",p:5800});workSteps.push({n:"Elektro",h:5000/RATE})}
+      else if(a.elektro==="Ja, nytt"){items.push({n:"Elektro (nytt opplegg)",p:17000});workSteps.push({n:"Elektro",h:15000/RATE})}
 
       items.push({n:"Rigg/transport",p:3500});
-      if(a.riving==="Ja")items.push({n:"Avfallshåndtering",p:5000});
+      if(a.riving==="Ja")items.push({n:"Avfallshåndtering",p:5800});
       const isNew=a.type==="Nytt kjøkken";
       let title=`Kjøkken — ${isNew?"nytt":"oppgradering"}, ~${m2} m²`;
       return{title,items,work:workSteps}
@@ -672,12 +672,12 @@ const DB = {
 
       let items=[{n:`Trapp ${a.material} (${a.etasjer})`,p:mid}];
       let workSteps=[{n:"Montering trapp",h:22500/RATE}];
-      items.push({n:"Arbeid montering",p:22500});
+      items.push({n:"Arbeid montering",p:26000});
 
-      if(a.rekkverk==="Glass"){items.push({n:"Rekkverk glass",p:22500});workSteps.push({n:"Montering glassrekkverk",h:8})}
-      else if(a.rekkverk==="Stål"){items.push({n:"Rekkverk stål",p:15000});workSteps.push({n:"Montering stålrekkverk",h:6})}
+      if(a.rekkverk==="Glass"){items.push({n:"Rekkverk glass",p:26000});workSteps.push({n:"Montering glassrekkverk",h:8})}
+      else if(a.rekkverk==="Stål"){items.push({n:"Rekkverk stål",p:17000});workSteps.push({n:"Montering stålrekkverk",h:6})}
 
-      if(a.riving==="Ja"){items.push({n:"Riving gammel trapp",p:7500});workSteps.unshift({n:"Riving gammel trapp",h:7500/RATE})}
+      if(a.riving==="Ja"){items.push({n:"Riving gammel trapp",p:8500});workSteps.unshift({n:"Riving gammel trapp",h:7500/RATE})}
       items.push({n:"Rigg/transport",p:3500});
       items.push({n:"Avfallshåndtering",p:a.riving==="Ja"?5000:2500});
       return{title:`Trapp — ${a.material} ${a.etasjer.toLowerCase()}, ${a.type.toLowerCase()}`,items,work:workSteps}
@@ -725,9 +725,9 @@ const DB = {
         if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:lm*300})}
         workSteps.push({n:"Forskaling + støping",h:lm*1.5});
       } else if(isTrapp){
-        items.push({n:"Betongtrapp",p:70000});
+        items.push({n:"Betongtrapp",p:80000});
         items.push({n:"Forskaling",p:8000});
-        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:5000})}
+        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:5800})}
         workSteps.push({n:"Forskaling + støping trapp",h:40});
       } else if(isVegg){
         const areas={"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120};
@@ -760,7 +760,7 @@ const DB = {
         workSteps.push({n:"Prep + avretting",h:m2*0.15});
       }
 
-      if(a.graving==="Ja"){items.push({n:"Graving/grunnarbeid",p:12500});workSteps.unshift({n:"Graving",h:12500/RATE})}
+      if(a.graving==="Ja"){items.push({n:"Graving/grunnarbeid",p:14500});workSteps.unshift({n:"Graving",h:12500/RATE})}
       // Markisolasjon
       if(a.markisolasjon==="50mm"){
         const isoM2=(isPlate?(a.area_m2||{"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120}[a.area]||35):(isRingmur?(a.lengde_m2||{"Under 10 lm":8,"10–20 lm":15,"20–40 lm":30,"Over 40 lm":50}[a.lengde]||15)*0.8:0));
@@ -799,13 +799,13 @@ const DB = {
       let items=[{n:`${a.type} ~${m2} m²`,p:baseMid}];
       let workSteps=[{n:"Bygging komplett",h:baseMid*0.3/RATE}];
 
-      if(a.fundament==="Betongplate"){items.push({n:"Betongplate fundament",p:40000});workSteps.push({n:"Støping fundament",h:40000/RATE})}
-      else if(a.fundament==="Ringmur"){items.push({n:"Ringmur fundament",p:45000});workSteps.push({n:"Ringmur",h:45000/RATE})}
-      else if(a.fundament==="Påler/pilarer"){items.push({n:"Påler/pilarer fundament",p:25000});workSteps.push({n:"Påler/pilarer",h:25000/RATE})}
+      if(a.fundament==="Betongplate"){items.push({n:"Betongplate fundament",p:46000});workSteps.push({n:"Støping fundament",h:40000/RATE})}
+      else if(a.fundament==="Ringmur"){items.push({n:"Ringmur fundament",p:52000});workSteps.push({n:"Ringmur",h:45000/RATE})}
+      else if(a.fundament==="Påler/pilarer"){items.push({n:"Påler/pilarer fundament",p:29000});workSteps.push({n:"Påler/pilarer",h:25000/RATE})}
 
-      if(a.tak==="Saltak"){items.push({n:"Saltak (tillegg vs pulttak)",p:20000})}
+      if(a.tak==="Saltak"){items.push({n:"Saltak (tillegg vs pulttak)",p:23000})}
       if(a.dorvindu==="1 dør + 2 vinduer"){items.push({n:"Ekstra vindu",p:6500})}
-      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:22500});workSteps.push({n:"Elektriker",h:22500/RATE})}
+      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:26000});workSteps.push({n:"Elektriker",h:22500/RATE})}
       items.push({n:"Rigg/transport",p:3500});
       items.push({n:"Avfallshåndtering",p:2500});
       return{title:`${a.type} — ~${m2} m², ${a.tak.toLowerCase()}`,items,work:workSteps}
@@ -900,10 +900,10 @@ const DB = {
       let items=[{n:`${a.type} ~${m2} m²${isolert?" (isolert)":""}`,p:basePrice}];
       let workSteps=[{n:"Bygging komplett",h:basePrice*0.3/RATE}];
 
-      if(a.port==="Seksjonalport (elektrisk)"){items.push({n:"Seksjonalport (elektrisk)",p:30000});workSteps.push({n:"Montering port",h:8})}
-      else if(a.port==="Vippeport"){items.push({n:"Vippeport",p:15000});workSteps.push({n:"Montering port",h:5})}
+      if(a.port==="Seksjonalport (elektrisk)"){items.push({n:"Seksjonalport (elektrisk)",p:34500});workSteps.push({n:"Montering port",h:8})}
+      else if(a.port==="Vippeport"){items.push({n:"Vippeport",p:17000});workSteps.push({n:"Montering port",h:5})}
 
-      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:22500});workSteps.push({n:"Elektriker",h:22500/RATE})}
+      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:26000});workSteps.push({n:"Elektriker",h:22500/RATE})}
       items.push({n:"Rigg/transport",p:3500});
       items.push({n:"Avfallshåndtering",p:2500});
       return{title:`${a.type} — ${a.storrelse}, ~${m2} m²${isolert?" (isolert)":""}`,items,work:workSteps}
@@ -917,7 +917,7 @@ const DB = {
   }
 };
 
-const RATE=950;
+const RATE=1200;
 let state={step:"welcome",cat:null,answers:{},qIdx:0,currentEstimate:null,uploadedImg:null};
 let logoClicks=0,logoTimer=null;
 const chat=document.getElementById("chat");
@@ -1932,7 +1932,7 @@ async function romCalculate(){
   // Vaskerom extras
   if(rd.membran){items.push({n:`Membran/våtrom (~${Math.round(m2+m2*3.2)} m²)`,p:Math.round((m2+m2*3.2)*500)});work.push({n:"Membran-arbeid",h:m2*0.5})}
   if(rd.sluk){items.push({n:"Nytt sluk",p:4500});work.push({n:"Sluk-installasjon",h:3})}
-  if(rd.flytteVann){items.push({n:"Flytte vann/avløp",p:15000});work.push({n:"VVS-arbeid",h:15000/RATE})}
+  if(rd.flytteVann){items.push({n:"Flytte vann/avløp",p:17000});work.push({n:"VVS-arbeid",h:15000/RATE})}
 
   // Garderobe
   if(rd.garderobe){
