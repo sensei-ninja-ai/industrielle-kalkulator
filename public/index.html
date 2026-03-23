@@ -2024,7 +2024,7 @@ function renderScaffoldConfig(){
       const heightMult=h>10?2:h>6?1.5:1;
       price=Math.round(base*heightMult);
     } else{const days=Math.max(1,Math.ceil(h/5));const dayRate=h>8?9000:6500;price=days*dayRate+3500}
-    html+=`<div style="margin-top:10px;padding:10px 14px;background:rgba(239,16,6,.08);border:1px solid rgba(239,16,6,.15);border-radius:10px;font-size:14px;color:var(--text)">💰 Estimert tillegg: <strong style="color:var(--accent)">${fmt(price)}</strong>${s.type==="Stillas"?` <span style="font-size:12px;opacity:.7">(${s.length||10} lm × ${h}m${h>6?" + høydetillegg":""})</span>`:""}</div>`;
+    // Estimert tillegg preview fjernet
   }
 
   html+=`<button class="btn btn-primary" style="margin-top:10px;width:100%" onclick="scaffoldDone()">🏗️ Beregn totalpris</button>`;
