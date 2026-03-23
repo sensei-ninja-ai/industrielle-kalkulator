@@ -173,7 +173,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
   <div class="chat" id="chat"></div>
   <div class="input-area" id="inputArea">
     <button class="icon-btn camera" onclick="document.getElementById('fileInput').click()" aria-label="Last opp bilder og video">📷</button>
-    <input type="file" id="fileInput" accept="image/*" capture="environment">
+    <input type="file" id="fileInput" accept="image/*" capture="environment" multiple>
     <textarea id="userInput" rows="1" placeholder="Skriv en melding..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendText()}"></textarea>
     <button class="icon-btn send" onclick="sendText()" aria-label="Send">➤</button>
   </div>
@@ -3456,7 +3456,7 @@ async function analyzeImageWithGemini(base64Image,mimeType){
             {text:`Du er en erfaren norsk håndverker. Analyser dette bildet og svar KUN med JSON:\n{\n  "jobtype": "kategori fra listen: fasade/kledning, tak/tekking, vindu, bad, gulv, maling, terrasse, betong, gips, annet",\n  "beskrivelse": "kort beskrivelse på norsk av hva du ser",\n  "estimert_areal": "estimert størrelse i m² eller løpemeter (tall eller null)",\n  "tilstand": "god/middels/dårlig",\n  "stillas_trengs": true/false,\n  "tilleggsnotater": "annet viktig du ser"\n}\nSvar BARE med JSON, ingen annen tekst.`},
             {inline_data:{mime_type:mimeType,data:base64Image}}
           ]}],
-          generation_config:{temperature:0.1,max_output_tokens:500}
+          generationConfig:{temperature:0.1,maxOutputTokens:500}
         })
       }
     );
@@ -3497,6 +3497,10 @@ document.getElementById("fileInput").addEventListener("change",async function(e)
   // In job_description step, handled by askJobDescription's own handler
   if(state.step==="job_description")return;
   const file=e.target.files[0];if(!file)return;
+  // Validate file
+  if(file.size===0){await botSay("⚠️ Filen ser ut til å være tom (0 bytes). Prøv et annet bilde.");e.target.value="";return;}
+  if(file.size>10*1024*1024){await botSay("⚠️ Bildet er for stort (maks 10 MB). Komprimer det og prøv igjen.");e.target.value="";return;}
+  if(file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf")){await botSay("⚠️ PDF støttes ikke — last opp et bilde (JPG, PNG, HEIC).");e.target.value="";return;}
   const reader=new FileReader();
   reader.onload=async function(ev){
     const dataUrl=ev.target.result;
