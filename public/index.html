@@ -247,10 +247,10 @@ const DB = {
       let items=[
         {n:`Kledning ${a.type} (${m2} m²)`,p:m2*mp},
         {n:"Lekter/underlag",p:m2*(hasIso?110:72)},
-        {n:"Skruer/beslag",p:m2*59},
-        {n:"Vindsperre",p:m2*72},
-        {n:"Hjørnebord/vannbord/belistning",p:m2*120},
-        {n:"Overflatebehandling (beis 2 strøk)",p:m2*150},
+        {n:"Skruer/beslag",p:m2*77},
+        {n:"Vindsperre",p:m2*94},
+        {n:"Hjørnebord/vannbord/belistning",p:m2*156},
+        {n:"Overflatebehandling (beis 2 strøk)",p:m2*195},
         {n:"Rigg/transport",p:5200},
         {n:"Avfallshåndtering",p:m2*48+2400}
       ];
@@ -800,7 +800,7 @@ const DB = {
         const ppm2=tykkPris[a.tykkelse]||1150;
         const finishTillegg=a.betongfinish||0;
         items.push({n:`Betongplate ${a.tykkelse||"15cm"} (${m2} m²)`,p:m2*(ppm2+finishTillegg)});
-        items.push({n:"Forskaling",p:m2*120});
+        items.push({n:"Forskaling",p:m2*156});
         if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:m2*200})}
         if(finishTillegg>0)workSteps.push({n:"Overflatebehandling betong",h:m2*0.1});
         workSteps.push({n:"Forskaling + støping",h:m2*0.5});
