@@ -1322,25 +1322,49 @@ async function start(){
   await botSay("Hvordan vil du gå frem?",btnGroup);
 }
 
-// ─── New: Text + Image first workflow ───
+// ─── New: Step-by-step Text + Image workflow ───
 async function askJobDescription(){
   state.step="job_description";
   state.uploadedImg=null;
   state.pendingImageBase64=null;
   state.pendingImageMime=null;
+  state.jobDescText=null;
 
+  // STEG 1: Bare tekstfelt
   const wrapper=el("div","job-desc-wrapper");
-
   const ta=document.createElement("textarea");
   ta.id="jobDescInput";
   ta.rows=3;
   ta.placeholder="F.eks: Bytte alle vinduene på huset, nytt bad, male fasaden...";
   wrapper.appendChild(ta);
 
-  const imgRow=el("div","");
-  imgRow.style.cssText="display:flex;align-items:center;gap:10px;flex-wrap:wrap";
-  const uploadSmall=el("button","upload-small-btn","📸 Last opp bilde (valgfritt)");
-  uploadSmall.onclick=()=>{
+  const goBtn=el("button","btn btn-primary","Neste ➜");
+  goBtn.style.cssText="margin-top:4px;width:100%;min-height:52px;font-size:16px";
+  goBtn.onclick=submitJobText;
+  wrapper.appendChild(goBtn);
+
+  const skipLink=el("div","skip-link","Hopp over, velg kategori manuelt");
+  skipLink.onclick=()=>{addMsg("Velg kategori manuelt","user");state.step="choose_cat";showMainCategories()};
+  wrapper.appendChild(skipLink);
+
+  await botSay("Beskriv jobben din kort:",wrapper);
+  ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitJobText()}});
+}
+
+async function submitJobText(){
+  const ta=document.getElementById("jobDescInput");
+  const text=(ta?.value||"").trim();
+  if(!text){await botSay("Skriv litt om hva du trenger hjelp med 😊");return}
+  state.jobDescText=text;
+  addMsg(text,"user");
+
+  // STEG 2: Bilde-upload
+  const wrapper=el("div","");
+  wrapper.style.cssText="display:flex;flex-direction:column;gap:10px;margin-top:8px";
+
+  const uploadBtn=el("button","btn btn-primary","📸 Last opp bilde");
+  uploadBtn.style.cssText="width:100%;min-height:52px;font-size:15px";
+  uploadBtn.onclick=()=>{
     const fi=document.getElementById("fileInput");
     const handler=function(e){
       const file=e.target.files[0];if(!file)return;
@@ -1350,14 +1374,17 @@ async function askJobDescription(){
         state.pendingImageBase64=ev.target.result.split(",")[1];
         state.pendingImageMime=file.type||"image/jpeg";
         state.uploadedImg=ev.target.result;
-        // show thumb
-        const existing=document.getElementById("imgPreview");
-        if(existing)existing.remove();
-        const img=el("img","ai-preview-img");
-        img.id="imgPreview";
-        img.src=ev.target.result;
-        imgRow.appendChild(img);
-        uploadSmall.textContent="📸 Bilde valgt ✓";
+        // Replace button with thumb + confirm
+        uploadBtn.textContent="✓ Bilde valgt";
+        uploadBtn.disabled=true;
+        const thumb=el("img","ai-preview-img");
+        thumb.src=ev.target.result;
+        thumb.style.cssText="width:80px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--accent);margin-top:4px";
+        const analyzeBtn=el("button","btn btn-primary","🔍 Analyser →");
+        analyzeBtn.style.cssText="width:100%;min-height:52px;font-size:16px;margin-top:4px";
+        analyzeBtn.onclick=()=>submitJobDescription();
+        wrapper.appendChild(thumb);
+        wrapper.appendChild(analyzeBtn);
         e.target.value="";
       };
       reader.readAsDataURL(file);
@@ -1365,46 +1392,28 @@ async function askJobDescription(){
     fi.addEventListener("change",handler);
     fi.click();
   };
-  imgRow.appendChild(uploadSmall);
-  wrapper.appendChild(imgRow);
 
-  const goBtn=el("button","btn btn-primary","➜ Gå videre");
-  goBtn.style.cssText="margin-top:4px;width:100%;min-height:52px;font-size:16px";
-  goBtn.onclick=submitJobDescription;
-  wrapper.appendChild(goBtn);
+  const skipBtn=el("button","btn btn-outline","Hopp over →");
+  skipBtn.style.cssText="width:100%;min-height:48px;font-size:15px";
+  skipBtn.onclick=()=>submitJobDescription();
 
-  const skipLink=el("div","skip-link","Hopp over, velg kategori manuelt");
-  skipLink.onclick=()=>{
-    addMsg("Velg kategori manuelt","user");
-    state.step="choose_cat";
-    showMainCategories();
-  };
-  wrapper.appendChild(skipLink);
-
-  await botSay("Beskriv hva du trenger hjelp med:",wrapper);
-
-  // Enter key submits
-  ta.addEventListener("keydown",e=>{
-    if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitJobDescription()}
-  });
+  wrapper.appendChild(uploadBtn);
+  wrapper.appendChild(skipBtn);
+  await botSay("Flott! Har du et bilde av jobben? 📸",wrapper);
 }
 
 async function submitJobDescription(){
-  const ta=document.getElementById("jobDescInput");
-  const text=(ta?.value||"").trim();
-  if(!text&&!state.pendingImageBase64){
-    await botSay("Skriv litt om hva du trenger hjelp med, eller velg kategori manuelt 😊");
-    return;
-  }
-  const displayText=text||"(Bilde sendt uten tekst)";
-  addMsg(displayText,"user");
-  if(state.uploadedImg&&!text){
-    // show image as user msg
-    const imgEl=el("img");imgEl.src=state.uploadedImg;imgEl.style.cssText="max-width:100%;border-radius:12px;margin-top:6px";
+  const text=state.jobDescText||"";
+
+  // Show image preview in chat as user msg if provided
+  if(state.uploadedImg){
+    const imgEl=el("img");imgEl.src=state.uploadedImg;imgEl.style.cssText="max-width:100%;border-radius:12px";
     addMsg("","user").appendChild(imgEl);
+  } else {
+    addMsg("Hopp over","user");
   }
 
-  // Show analyzing indicator
+  // STEG 3: AI analyserer
   const analyzingEl=el("div","msg bot analyzing-msg");
   analyzingEl.innerHTML=`🤔 Analyserer...<div class="dot-anim"><span></span><span></span><span></span></div>`;
   chat.appendChild(analyzingEl);
@@ -1416,7 +1425,6 @@ async function submitJobDescription(){
   if(result){
     await processAIAnalysis(result,text);
   } else {
-    // Fallback to manual categories
     await botSay("Jeg klarte ikke å analysere dette automatisk. Velg kategori fra listen: 👇");
     state.step="choose_cat";
     showMainCategories();
