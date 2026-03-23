@@ -1351,88 +1351,152 @@ async function askJobDescription(){
   ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitJobText()}});
 }
 
+// ─── Video frame extraction ───
+async function extractVideoFrames(file, maxFrames=5){
+  return new Promise(resolve=>{
+    const url=URL.createObjectURL(file);
+    const video=document.createElement("video");
+    video.src=url;video.muted=true;video.playsInline=true;
+    video.addEventListener("loadedmetadata",async()=>{
+      const duration=video.duration;
+      const interval=Math.max(2,duration/(maxFrames+1));
+      const frames=[];
+      const canvas=document.createElement("canvas");
+      canvas.width=640;canvas.height=360;
+      const ctx=canvas.getContext("2d");
+      for(let i=1;i<=maxFrames&&i*interval<duration;i++){
+        await new Promise(r=>{
+          video.currentTime=i*interval;
+          video.addEventListener("seeked",function h(){video.removeEventListener("seeked",h);r();},{once:true});
+        });
+        ctx.drawImage(video,0,0,canvas.width,canvas.height);
+        const dataUrl=canvas.toDataURL("image/jpeg",0.7);
+        frames.push({base64:dataUrl.split(",")[1],mime:"image/jpeg",preview:dataUrl});
+      }
+      URL.revokeObjectURL(url);
+      resolve(frames);
+    });
+    video.addEventListener("error",()=>resolve([]));
+    video.load();
+  });
+}
+
+// state.mediaFiles = [{base64, mime, preview, isVideo}]
 async function submitJobText(){
   const ta=document.getElementById("jobDescInput");
   const text=(ta?.value||"").trim();
   if(!text){await botSay("Skriv litt om hva du trenger hjelp med 😊");return}
   state.jobDescText=text;
+  state.mediaFiles=[];
   addMsg(text,"user");
 
-  // STEG 2: Bilde-upload
+  // STEG 2: Multi-fil upload
   const wrapper=el("div","");
   wrapper.style.cssText="display:flex;flex-direction:column;gap:10px;margin-top:8px";
 
-  const uploadBtn=el("button","btn btn-primary","📸 Last opp bilder og video");
-  uploadBtn.style.cssText="width:100%;min-height:52px;font-size:15px";
-  uploadBtn.onclick=()=>{
-    const fi=document.getElementById("fileInput");
-    const handler=function(e){
-      const file=e.target.files[0];if(!file)return;
-      fi.removeEventListener("change",handler);
-      const reader=new FileReader();
-      reader.onload=function(ev){
-        state.pendingImageBase64=ev.target.result.split(",")[1];
-        state.pendingImageMime=file.type||"image/jpeg";
-        state.uploadedImg=ev.target.result;
-        // Replace button with thumb + confirm
-        uploadBtn.textContent="✓ Bilde valgt";
-        uploadBtn.disabled=true;
-        const thumb=el("img","ai-preview-img");
-        thumb.src=ev.target.result;
-        thumb.style.cssText="width:80px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--accent);margin-top:4px";
-        const analyzeBtn=el("button","btn btn-primary","🔍 Analyser →");
-        analyzeBtn.style.cssText="width:100%;min-height:52px;font-size:16px;margin-top:4px";
-        analyzeBtn.onclick=()=>submitJobDescription();
-        wrapper.appendChild(thumb);
-        wrapper.appendChild(analyzeBtn);
-        e.target.value="";
-      };
-      reader.readAsDataURL(file);
-    };
-    fi.addEventListener("change",handler);
+  const previewRow=el("div","");
+  previewRow.style.cssText="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px";
+
+  const addMoreBtn=el("button","btn btn-outline","📸🎥 Legg til bilder/video");
+  addMoreBtn.style.cssText="width:100%;min-height:52px;font-size:15px";
+
+  const analyzeBtn=el("button","btn btn-primary","Ferdig, analyser ➜");
+  analyzeBtn.style.cssText="width:100%;min-height:52px;font-size:16px;display:none";
+
+  const skipBtn=el("button","btn btn-outline","Hopp over →");
+  skipBtn.style.cssText="width:100%;min-height:48px;font-size:14px";
+  skipBtn.onclick=()=>{addMsg("Hopp over","user");submitJobDescription()};
+
+  const countLabel=el("div","");
+  countLabel.style.cssText="font-size:13px;color:var(--text-dim);text-align:center;display:none";
+
+  function refreshUI(){
+    const n=state.mediaFiles.length;
+    countLabel.textContent=`${n} fil${n!==1?"er":""} valgt`;
+    countLabel.style.display=n>0?"block":"none";
+    analyzeBtn.style.display=n>0?"block":"none";
+    addMoreBtn.textContent=n>0?"➕ Legg til flere":"📸🎥 Legg til bilder/video";
+    skipBtn.style.display=n>0?"none":"block";
+  }
+
+  async function handleFiles(files){
+    for(const file of files){
+      const isVideo=file.type.startsWith("video/");
+      if(isVideo){
+        addMoreBtn.disabled=true;addMoreBtn.textContent="⏳ Trekker ut frames...";
+        const frames=await extractVideoFrames(file,5);
+        frames.forEach((f,i)=>{
+          state.mediaFiles.push({base64:f.base64,mime:f.mime,preview:f.preview,isVideo:true});
+          const thumb=el("div","");
+          thumb.style.cssText="position:relative;display:inline-block";
+          const img=el("img");img.src=f.preview;img.style.cssText="width:72px;height:54px;object-fit:cover;border-radius:8px;border:1.5px solid var(--accent)";
+          const lbl=el("div","");lbl.textContent="🎥";lbl.style.cssText="position:absolute;top:2px;left:2px;font-size:12px;background:rgba(0,0,0,.6);border-radius:4px;padding:1px 3px";
+          thumb.appendChild(img);thumb.appendChild(lbl);previewRow.appendChild(thumb);
+        });
+        addMoreBtn.disabled=false;
+      } else {
+        const dataUrl=await new Promise(r=>{const rd=new FileReader();rd.onload=ev=>r(ev.target.result);rd.readAsDataURL(file)});
+        state.mediaFiles.push({base64:dataUrl.split(",")[1],mime:file.type||"image/jpeg",preview:dataUrl,isVideo:false});
+        if(i===0)state.uploadedImg=dataUrl;
+        const thumb=el("img");thumb.src=dataUrl;thumb.style.cssText="width:72px;height:54px;object-fit:cover;border-radius:8px;border:1.5px solid var(--accent)";
+        previewRow.appendChild(thumb);
+      }
+    }
+    refreshUI();
+  }
+
+  addMoreBtn.onclick=()=>{
+    const fi=document.createElement("input");fi.type="file";fi.accept="image/*,video/*";fi.multiple=true;
+    fi.onchange=async e=>{if(e.target.files.length)await handleFiles(Array.from(e.target.files));};
     fi.click();
   };
 
-  const skipBtn=el("button","btn btn-outline","Hopp over →");
-  skipBtn.style.cssText="width:100%;min-height:48px;font-size:15px";
-  skipBtn.onclick=()=>submitJobDescription();
+  analyzeBtn.onclick=submitJobDescription;
 
-  wrapper.appendChild(uploadBtn);
+  wrapper.appendChild(addMoreBtn);
+  wrapper.appendChild(countLabel);
+  wrapper.appendChild(previewRow);
+  wrapper.appendChild(analyzeBtn);
   wrapper.appendChild(skipBtn);
-  await botSay("Flott! Har du bilder eller video av jobben? 📸",wrapper);
+  await botSay("Flott! Har du bilder eller video av jobben? 📸🎥",wrapper);
 }
 
 async function submitJobDescription(){
   const text=state.jobDescText||"";
+  const files=state.mediaFiles||[];
 
-  // Show image preview in chat as user msg if provided
-  if(state.uploadedImg){
-    const imgEl=el("img");imgEl.src=state.uploadedImg;imgEl.style.cssText="max-width:100%;border-radius:12px";
-    addMsg("","user").appendChild(imgEl);
+  if(files.length>0){
+    const d=el("div","msg user");
+    d.style.cssText="display:flex;flex-wrap:wrap;gap:6px";
+    files.filter(f=>!f.isVideo||(files.indexOf(f)===files.findIndex(g=>g.isVideo))).slice(0,4).forEach(f=>{
+      const img=el("img");img.src=f.preview;img.style.cssText="max-width:80px;max-height:60px;object-fit:cover;border-radius:8px";
+      d.appendChild(img);
+    });
+    if(files.length>4){const lbl=el("div","");lbl.textContent=`+${files.length-4} til`;lbl.style.cssText="color:var(--text-dim);font-size:13px;align-self:center";d.appendChild(lbl);}
+    chat.appendChild(d);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
   } else {
-    addMsg("Hopp over","user");
+    if(!files.length)addMsg("Hopp over","user");
   }
 
   // STEG 3: AI analyserer
   const analyzingEl=el("div","msg bot analyzing-msg");
-  analyzingEl.innerHTML=`🤔 Analyserer...<div class="dot-anim"><span></span><span></span><span></span></div>`;
-  chat.appendChild(analyzingEl);
-  chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+  analyzingEl.innerHTML=`🤔 Analyserer${files.length?" "+files.length+" fil"+(files.length!==1?"er":""):""}...<div class="dot-anim"><span></span><span></span><span></span></div>`;
+  chat.appendChild(analyzingEl);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
 
-  const result=await analyzeJobWithAI(text,state.pendingImageBase64,state.pendingImageMime);
+  const result=await analyzeJobWithAI(text,files);
   analyzingEl.remove();
 
   if(result){
     await processAIAnalysis(result,text);
   } else {
-    await botSay("Jeg klarte ikke å analysere dette automatisk. Velg kategori fra listen: 👇");
-    state.step="choose_cat";
-    showMainCategories();
+    await botSay("Beklager, jeg klarte ikke analysere automatisk. La meg hjelpe deg manuelt:");
+    state.step="choose_cat";showMainCategories();
   }
 }
 
-async function analyzeJobWithAI(beskrivelse,base64Image,mimeType){
-  const systemPrompt=`Du er en prisassistent for et norsk byggefirma. Analyser kundens beskrivelse og eventuelt bilde.
+// analyzeJobWithAI(beskrivelse, files=[{base64,mime},...], extraContext="")
+async function analyzeJobWithAI(beskrivelse, files=[], extraContext=""){
+  const systemPrompt=`Du er en prisassistent for et norsk byggefirma. Analyser kundens beskrivelse og eventuelt bilder/video-frames.
 
 SVAR ALLTID med ren JSON (ingen markdown, ingen backtick-blokker):
 {
@@ -1448,7 +1512,7 @@ SVAR ALLTID med ren JSON (ingen markdown, ingen backtick-blokker):
 
 REGLER for kontrollsporsmal:
 - Maks 3 spørsmål
-- Spør BARE om det du IKKE kan utlede fra beskrivelse/bilde
+- Spør BARE om det du IKKE kan utlede fra beskrivelse/bilder
 - Bruk korte norske spørsmål
 - Gi alltid 2-4 alternativer per spørsmål
 
@@ -1457,14 +1521,17 @@ Eksempler:
 - For "male fasade": spør om antall etasjer, tilstand, farge
 - For "nytt bad": spør om størrelse, dusjtype, fliskvalitet`;
 
-  const parts=[{text:systemPrompt+"\n\nKundens beskrivelse: "+(beskrivelse||"(ingen tekst, analyser bilde)")}];
-  if(base64Image&&mimeType){parts.push({inline_data:{mime_type:mimeType,data:base64Image}});}
+  const textPart=systemPrompt+"\n\nKundens beskrivelse: "+(beskrivelse||"(ingen tekst)")+(extraContext?"\n\nTilleggsinfo fra kunden: "+extraContext:"");
+  const parts=[{text:textPart}];
+  // Add up to 5 images (Gemini limit per request)
+  const imgFiles=(files||[]).slice(0,5);
+  imgFiles.forEach(f=>{parts.push({inline_data:{mime_type:f.mime||"image/jpeg",data:f.base64}});});
 
   try{
     const resp=await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyDieV5GbNzcI-B4LfLUKqLHHfj4R_4uxoI',
       {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts}],generationConfig:{temperature:0.1,maxOutputTokens:800}})}
+      body:JSON.stringify({contents:[{parts}],generationConfig:{temperature:0.1,maxOutputTokens:900}})}
     );
     const data=await resp.json();
     const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
@@ -1472,13 +1539,13 @@ Eksempler:
     return JSON.parse(clean);
   }catch(e1){
     try{
-      const msgContent=base64Image&&mimeType
-        ?[{type:'text',text:systemPrompt+"\n\nKundens beskrivelse: "+(beskrivelse||"(ingen tekst)")},{type:'image_url',image_url:{url:`data:${mimeType};base64,${base64Image}`}}]
-        :[{type:'text',text:systemPrompt+"\n\nKundens beskrivelse: "+(beskrivelse||"(ingen tekst)")}];
+      const msgContent=[{type:'text',text:textPart}];
+      // Venice: send first image only (VL model)
+      if(imgFiles.length>0){msgContent.push({type:'image_url',image_url:{url:`data:${imgFiles[0].mime};base64,${imgFiles[0].base64}`}});}
       const resp2=await fetch('https://api.venice.ai/api/v1/chat/completions',{
         method:'POST',
         headers:{'Authorization':'Bearer VENICE-INFERENCE-KEY-NUxXG_6uqoIdW0W5RBHAi3OAZKGmbk1jQDr2h-Mf3R','Content-Type':'application/json'},
-        body:JSON.stringify({model:'qwen3-vl-235b-a22b',messages:[{role:'user',content:msgContent}],max_tokens:800})
+        body:JSON.stringify({model:'qwen3-vl-235b-a22b',messages:[{role:'user',content:msgContent}],max_tokens:900})
       });
       const data2=await resp2.json();
       const txt2=data2.choices?.[0]?.message?.content||'';
@@ -1523,8 +1590,6 @@ async function processAIAnalysis(result,originalText){
   state.aiResult=result;
   const dbKey=aiJobtypeToDBKey[(result.jobtype||"").toLowerCase()]||null;
 
-  await botSay(`👍 ${result.sammendrag||"Forstått! La meg hjelpe deg videre."}`);
-
   if(dbKey){
     state.cat=dbKey;state.answers={};state.qIdx=0;
     if(result.estimert_areal!==null&&result.estimert_areal!==undefined&&!isNaN(Number(result.estimert_areal))){
@@ -1536,16 +1601,55 @@ async function processAIAnalysis(result,originalText){
     }
   }
 
-  // Use new kontrollsporsmal format with {sporsmal, alternativer} objects
+  // Ask kontrollspørsmål first, then confirm
   const kontroll=result.kontrollsporsmal||[];
-  state.aiFollowup={kontroll,idx:0,dbKey};
+  state.aiFollowup={kontroll,idx:0,dbKey,sammendrag:result.sammendrag||""};
   state.aiFollowupAnswers=[];
-  askNextAIFollowup();
+
+  if(kontroll.length>0){
+    await botSay(`👍 ${result.sammendrag||"Forstått!"} La meg stille noen raske spørsmål:`);
+    askNextAIFollowup();
+  } else {
+    // No follow-up questions — go straight to confirm
+    await showAIConfirmation(result.sammendrag||"",dbKey);
+  }
+}
+
+async function showAIConfirmation(sammendrag, dbKey){
+  const grp=el("div","btn-group");
+  grp.style.flexDirection="column";
+
+  const confirmBtn=el("button","btn btn-primary","✅ Ja, gi meg estimat!");
+  confirmBtn.style.cssText="width:100%;min-height:52px;font-size:15px";
+  confirmBtn.onclick=()=>{addMsg("Ja, gi meg estimat!","user");finishAIFollowup();};
+
+  const retryBtn=el("button","btn btn-outline","❌ Nei, noe er feil");
+  retryBtn.style.cssText="width:100%;min-height:48px;font-size:14px";
+  retryBtn.onclick=async()=>{
+    addMsg("Nei, noe er feil","user");
+    // Re-ask with context from answers
+    const extraCtx=state.aiFollowupAnswers.join(", ");
+    const analyzingEl=el("div","msg bot analyzing-msg");
+    analyzingEl.innerHTML=`🤔 Oppdaterer forståelse...<div class="dot-anim"><span></span><span></span><span></span></div>`;
+    chat.appendChild(analyzingEl);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+    const result2=await analyzeJobWithAI(state.jobDescText||"",state.mediaFiles||[],extraCtx);
+    analyzingEl.remove();
+    if(result2){await processAIAnalysis(result2,state.jobDescText||"");}
+    else{await botSay("La meg hjelpe deg manuelt:");state.step="choose_cat";showMainCategories();}
+  };
+
+  grp.appendChild(confirmBtn);
+  grp.appendChild(retryBtn);
+  await botSay(`Basert på svarene dine: <strong>${sammendrag}</strong><br><br>Stemmer dette?`,grp);
 }
 
 async function askNextAIFollowup(){
   const fu=state.aiFollowup;
-  if(!fu||fu.idx>=fu.kontroll.length){finishAIFollowup();return;}
+  if(!fu||fu.idx>=fu.kontroll.length){
+    // All questions answered — show confirmation
+    await showAIConfirmation(fu?.sammendrag||"",fu?.dbKey||null);
+    return;
+  }
 
   const item=fu.kontroll[fu.idx];
   const sporsmal=item.sporsmal||item;
