@@ -195,6 +195,22 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 const CAL_URL = "https://cal.com/industrielle";
 // BEDRIFTSPROFIL: Løsningsorientert, profesjonell, trygg
 const PHONE_NUMBER = "777 00 000"; // TODO: oppdater med riktig telefonnummer
+const SHEETS_WEBHOOK = ""; // Krisfred fyller inn Google Apps Script URL her
+
+// ─── Google Sheets integrasjon ───
+async function saveToSheets(data) {
+  if (!SHEETS_WEBHOOK) return;
+  try {
+    await fetch(SHEETS_WEBHOOK, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+  } catch(e) {
+    console.warn('Sheets-lagring feilet:', e);
+  }
+}
 
 // ─── Category Grouping ───
 const MAIN_GROUPS = {
@@ -2177,6 +2193,7 @@ async function generateEstimate(){
   const total=matTotal+adjustedWorkTotal;
 
   state.currentEstimate={title:result.title,total,matTotal,workTotal:adjustedWorkTotal,items:result.items,work:result.work};
+  state.lastMatTotal=matTotal;state.lastWorkTotal=adjustedWorkTotal;state.lastTotalLow=Math.round(total*0.9);state.lastTotalHigh=Math.round(total*1.1);state.lastItems=result.items;
 
   const estHtml=`
     <div class="estimate">
@@ -2192,6 +2209,19 @@ async function generateEstimate(){
     </div>`;
 
   await botSay(estHtml);
+  saveToSheets({
+    kategori: state.cat||'',
+    underkategori: DB[state.cat]?.name||'',
+    svar: state.answers||{},
+    materialTotal: matTotal,
+    arbeidTotal: adjustedWorkTotal,
+    totalLav: Math.round(total*0.9),
+    totalHoy: Math.round(total*1.1),
+    forhandlet: 'nei',
+    pakkepris: 'nei',
+    items: result.items,
+    enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
+  });
   // Show alternatives button
   const altBtn=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
   altBtn.style.cssText="width:100%;margin-top:4px";
@@ -2269,6 +2299,24 @@ async function submitLead(){
   let leads=JSON.parse(localStorage.getItem("industrielleLeads")||"[]");
   leads.push(lead);
   localStorage.setItem("industrielleLeads",JSON.stringify(leads));
+
+  saveToSheets({
+    kategori: state.cat||'',
+    underkategori: DB[state.cat]?.name||state.currentEstimate?.title||'',
+    navn: name,
+    telefon: phone,
+    epost: email,
+    materialTotal: state.lastMatTotal||state.currentEstimate?.matTotal||0,
+    arbeidTotal: state.lastWorkTotal||state.currentEstimate?.workTotal||0,
+    totalLav: state.lastTotalLow||Math.round((state.currentEstimate?.total||0)*0.9),
+    totalHoy: state.lastTotalHigh||Math.round((state.currentEstimate?.total||0)*1.1),
+    forhandlet: state.negotiated?'ja':'nei',
+    forhandletPris: state.negotiatedPrice||'',
+    pakkepris: state.synergyCategory?'ja':'nei',
+    pakkeDetaljer: state.synergyCategory||'',
+    items: state.lastItems||state.currentEstimate?.items||[],
+    enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
+  });
 
   addMsg(`${name}, ${phone}${email?", "+email:""}`,"user");
   await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi sender deg en lenke til videobefaring innen 24 timer.<br><br>Har du spørsmål i mellomtiden? Ring oss på <a href="tel:${PHONE_NUMBER.replace(/\s/g,'')}" style="color:var(--accent)">${PHONE_NUMBER}</a> 🏗️`);
@@ -2651,6 +2699,7 @@ async function winCalculate(){
   }
 
   state.currentEstimate={title:summary,total,matTotal,workTotal,items,work};
+  state.lastMatTotal=matTotal;state.lastWorkTotal=workTotal;state.lastTotalLow=Math.round(total*0.9);state.lastTotalHigh=Math.round(total*1.1);state.lastItems=items;
 
   const estHtml=`
     <div class="estimate">
@@ -2665,6 +2714,19 @@ async function winCalculate(){
     </div>`;
 
   await botSay(estHtml);
+  saveToSheets({
+    kategori: state.cat||'vindu',
+    underkategori: 'Vindusbytting',
+    svar: state.answers||{},
+    materialTotal: matTotal,
+    arbeidTotal: workTotal,
+    totalLav: Math.round(total*0.9),
+    totalHoy: Math.round(total*1.1),
+    forhandlet: 'nei',
+    pakkepris: 'nei',
+    items: items,
+    enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
+  });
   // Show alternatives button
   const altBtn2=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
   altBtn2.style.cssText="width:100%;margin-top:4px";
@@ -2898,6 +2960,7 @@ async function gardCalculate(){
   const total=matTotal+workTotal;
 
   state.currentEstimate={title,total,matTotal,workTotal,items,work};
+  state.lastMatTotal=matTotal;state.lastWorkTotal=workTotal;state.lastTotalLow=Math.round(total*0.9);state.lastTotalHigh=Math.round(total*1.1);state.lastItems=items;
 
   let matHtml=items.map(i=>`• ${i.n}`).join("<br>");
   let workHtml=work.map(w=>`• ${w.n}`).join("<br>");
@@ -2914,6 +2977,19 @@ async function gardCalculate(){
     </div>`;
 
   await botSay(estHtml);
+  saveToSheets({
+    kategori: state.cat||'garderobe',
+    underkategori: title,
+    svar: state.answers||{},
+    materialTotal: matTotal,
+    arbeidTotal: workTotal,
+    totalLav: Math.round(total*0.9),
+    totalHoy: Math.round(total*1.1),
+    forhandlet: 'nei',
+    pakkepris: 'nei',
+    items: items,
+    enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
+  });
   if(state.synergyBase){await showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
@@ -3198,6 +3274,7 @@ async function romCalculate(){
   const title=`Romoppussing ${rd.room} — ~${m2} m² (${taskList})`;
 
   state.currentEstimate={title,total,matTotal,workTotal,items,work};
+  state.lastMatTotal=matTotal;state.lastWorkTotal=workTotal;state.lastTotalLow=Math.round(total*0.9);state.lastTotalHigh=Math.round(total*1.1);state.lastItems=items;
 
   let matHtml=items.map(i=>`• ${i.n}`).join("<br>");
   let workHtml=work.map(w=>`• ${w.n}`).join("<br>");
@@ -3214,6 +3291,19 @@ async function romCalculate(){
     </div>`;
 
   await botSay(estHtml);
+  saveToSheets({
+    kategori: state.cat||'romoppussing',
+    underkategori: title,
+    svar: state.answers||{},
+    materialTotal: matTotal,
+    arbeidTotal: workTotal,
+    totalLav: Math.round(total*0.9),
+    totalHoy: Math.round(total*1.1),
+    forhandlet: 'nei',
+    pakkepris: 'nei',
+    items: items,
+    enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
+  });
   if(state.synergyBase){await showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
@@ -3382,9 +3472,25 @@ async function showCombinedEstimate(newEst){
     </div>`;
 
   state.currentEstimate={...newEst,total:combinedTotal,title:`${base.title} + ${newEst.title}`,items:allItems,work:allWork};
+  state.synergyCategory=`${base.title} + ${newEst.title}`;
+  state.lastMatTotal=allItems.reduce((s,i)=>s+(i.p||0),0);state.lastWorkTotal=allWork.reduce((s,w)=>s+Math.round(w.h*RATE),0);state.lastTotalLow=Math.round(combinedTotal*0.9);state.lastTotalHigh=Math.round(combinedTotal*1.1);state.lastItems=allItems;
   state.synergyBase=null;
 
   await botSay(estHtml);
+  saveToSheets({
+    kategori: state.cat||'',
+    underkategori: state.currentEstimate.title,
+    svar: state.answers||{},
+    materialTotal: state.lastMatTotal,
+    arbeidTotal: state.lastWorkTotal,
+    totalLav: state.lastTotalLow,
+    totalHoy: state.lastTotalHigh,
+    forhandlet: 'nei',
+    pakkepris: 'ja',
+    pakkeDetaljer: state.synergyCategory||'',
+    items: allItems,
+    enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
+  });
   await botSay(`🎉 Med pakketilbudet sparer du <strong style="color:#4ade80">${fmt(riggSaving)} kr</strong> på delt rigg og stillas!`);
   showNegotiationButtons();
 }
@@ -3436,6 +3542,7 @@ function showNegotiationOptions(){
     const newTotal=newMatTotal+est.workTotal;
     const reducedItems=est.items.map(i=>({...i,p:Math.round((i.p||0)*0.7)}));
     state.currentEstimate={...est,matTotal:newMatTotal,total:newTotal,items:reducedItems};
+    state.negotiated=true;state.negotiatedPrice=newTotal;state.lastMatTotal=newMatTotal;state.lastTotalLow=Math.round(newTotal*0.9);state.lastTotalHigh=Math.round(newTotal*1.1);state.lastItems=reducedItems;
     const matHtml=reducedItems.map(i=>`• ${i.n}`).join("<br>");
     const workHtml=est.work.map(w=>`• ${w.n}`).join("<br>");
     const estHtml=`
@@ -3670,6 +3777,25 @@ async function submitOtherLead(){
   const lead={name,phone,email,category:"annet",description:state.otherDesc,followup:state.otherAnswers,image:state.uploadedImg||state.otherAnswers?.image||null,date:new Date().toISOString(),status:"ny"};
   let leads=JSON.parse(localStorage.getItem("industrielleLeads")||"[]");
   leads.push(lead);localStorage.setItem("industrielleLeads",JSON.stringify(leads));
+
+  saveToSheets({
+    kategori: 'annet',
+    underkategori: state.otherDesc||'',
+    navn: name,
+    telefon: phone,
+    epost: email,
+    materialTotal: 0,
+    arbeidTotal: 0,
+    totalLav: 0,
+    totalHoy: 0,
+    forhandlet: 'nei',
+    forhandletPris: '',
+    pakkepris: 'nei',
+    pakkeDetaljer: '',
+    items: [],
+    enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
+  });
+
   addMsg(`${name}, ${phone}${email?", "+email:""}`,"user");
   await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi sender deg en lenke til videobefaring innen 24 timer.<br><br>Har du spørsmål i mellomtiden? Ring oss på <a href="tel:${PHONE_NUMBER.replace(/\s/g,'')}" style="color:var(--accent)">${PHONE_NUMBER}</a> 🏗️`);
   await delay(1500);restart();
