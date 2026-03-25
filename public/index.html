@@ -197,6 +197,35 @@ const CAL_URL = "https://cal.com/industrielle";
 const PHONE_NUMBER = "777 00 000"; // TODO: oppdater med riktig telefonnummer
 const SHEETS_WEBHOOK = ""; // Krisfred fyller inn Google Apps Script URL her
 
+// ─── Sesongfaktor ───
+const SEASON_FACTOR = (() => {
+  const month = new Date().getMonth(); // 0-indexed
+  if (month >= 4 && month <= 8) return { factor: 1.15, label: 'Sommersesong' };
+  if (month >= 10 || month <= 2) return { factor: 0.95, label: 'Vintersesong' };
+  return { factor: 1.0, label: null };
+})();
+
+// ─── Count-up animasjon ───
+function animateCount(element, target, duration) {
+  const start = 0;
+  const startTime = performance.now();
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + (target - start) * eased);
+    element.textContent = current.toLocaleString('nb-NO');
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+function animatePriceEls() {
+  chat.querySelectorAll('.anim-val:not([data-done])').forEach(el => {
+    el.dataset.done = '1';
+    animateCount(el, parseInt(el.dataset.val) || 0, 1500);
+  });
+}
+
 // ─── Google Sheets integrasjon ───
 async function saveToSheets(data) {
   if (!SHEETS_WEBHOOK) return;
@@ -2189,37 +2218,48 @@ async function generateEstimate(){
   let matHtml=result.items.map(i=>`• ${i.n}`).join("<br>");
   let workHtml=result.work.map(w=>`• ${w.n}`).join("<br>");
   const total=matTotal+adjustedWorkTotal;
+  const adjTotal=Math.round(total*SEASON_FACTOR.factor);
+  const seasonMsg=SEASON_FACTOR.label==='Sommersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);border-radius:10px;font-size:13px;color:#f5a623">☀️ Sommersesong — booking nå til vinterpris sparer deg ${Math.round(total*0.15).toLocaleString('nb-NO')} kr</div>`
+    :SEASON_FACTOR.label==='Vintersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:10px;font-size:13px;color:#3498db">❄️ Vinterpris — du sparer ${Math.round(total*0.05).toLocaleString('nb-NO')} kr sammenlignet med sommersesong</div>`
+    :'';
 
-  state.currentEstimate={title:result.title,total,matTotal,workTotal:adjustedWorkTotal,items:result.items,work:result.work};
-  state.lastMatTotal=matTotal;state.lastWorkTotal=adjustedWorkTotal;state.lastTotalLow=Math.round(total*0.9);state.lastTotalHigh=Math.round(total*1.1);state.lastItems=result.items;
+  state.currentEstimate={title:result.title,total:adjTotal,matTotal,workTotal:adjustedWorkTotal,items:result.items,work:result.work};
+  state.lastMatTotal=matTotal;state.lastWorkTotal=adjustedWorkTotal;state.lastTotalLow=Math.round(adjTotal*0.9);state.lastTotalHigh=Math.round(adjTotal*1.1);state.lastItems=result.items;
 
   const estHtml=`
     <div class="estimate">
       <strong>🏗️ ${result.title}</strong>
-      <h4>Materialer</h4>
-      ${matHtml}
-      <h4>Arbeid</h4>
-      ${workHtml}
       ${infoBoxes}
-      <div class="total">Totalt: ~${fmt(total)} (eks. mva)</div>
+      <div class="total">Totalt: ~<span class="anim-val" data-val="${Math.round(adjTotal*0.9)}">0</span> – <span class="anim-val" data-val="${Math.round(adjTotal*1.1)}">0</span> kr <small style="font-weight:normal;font-size:14px">(eks. mva)</small></div>
+      ${seasonMsg}
       <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhenger av befaring.</div>
       ${result.extra||""}
     </div>`;
 
   await botSay(estHtml);
+  animatePriceEls();
   saveToSheets({
     kategori: state.cat||'',
     underkategori: DB[state.cat]?.name||'',
     svar: state.answers||{},
     materialTotal: matTotal,
     arbeidTotal: adjustedWorkTotal,
-    totalLav: Math.round(total*0.9),
-    totalHoy: Math.round(total*1.1),
+    totalLav: Math.round(adjTotal*0.9),
+    totalHoy: Math.round(adjTotal*1.1),
     forhandlet: 'nei',
     pakkepris: 'nei',
     items: result.items,
     enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
   });
+  localStorage.setItem('lastEstimate', JSON.stringify({
+    category: state.cat||'',
+    categoryName: DB[state.cat]?.name||state.cat||'',
+    total: adjTotal,
+    timestamp: Date.now(),
+    contacted: false
+  }));
   // Show alternatives button
   const altBtn=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
   altBtn.style.cssText="width:100%;margin-top:4px";
@@ -2288,6 +2328,8 @@ function showLeadForm(){
 }
 
 async function submitLead(){
+  const _estLS = JSON.parse(localStorage.getItem('lastEstimate') || 'null');
+  if (_estLS) { _estLS.contacted = true; localStorage.setItem('lastEstimate', JSON.stringify(_estLS)); }
   const name=document.getElementById("leadName").value.trim();
   const phone=document.getElementById("leadPhone").value.trim();
   const email=document.getElementById("leadEmail").value.trim();
@@ -2697,34 +2739,45 @@ async function winCalculate(){
   }
 
   state.currentEstimate={title:summary,total,matTotal,workTotal,items,work};
-  state.lastMatTotal=matTotal;state.lastWorkTotal=workTotal;state.lastTotalLow=Math.round(total*0.9);state.lastTotalHigh=Math.round(total*1.1);state.lastItems=items;
+  const adjTotal_v=Math.round(total*SEASON_FACTOR.factor);
+  const seasonMsg_v=SEASON_FACTOR.label==='Sommersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);border-radius:10px;font-size:13px;color:#f5a623">☀️ Sommersesong — booking nå til vinterpris sparer deg ${Math.round(total*0.15).toLocaleString('nb-NO')} kr</div>`
+    :SEASON_FACTOR.label==='Vintersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:10px;font-size:13px;color:#3498db">❄️ Vinterpris — du sparer ${Math.round(total*0.05).toLocaleString('nb-NO')} kr sammenlignet med sommersesong</div>`
+    :'';
+  state.lastMatTotal=matTotal;state.lastWorkTotal=workTotal;state.lastTotalLow=Math.round(adjTotal_v*0.9);state.lastTotalHigh=Math.round(adjTotal_v*1.1);state.lastItems=items;
+  state.currentEstimate={...state.currentEstimate,total:adjTotal_v};
 
   const estHtml=`
     <div class="estimate">
       <strong>🏗️ Vindusbytting — ${summary}</strong>
-      ${bdHtml}
-      <h4>Materialer</h4>
-      ${matHtml}
-      <h4>Arbeid</h4>
-      ${workHtml}
-      <div class="total">Totalt: ~${fmt(total)} (eks. mva)</div>
+      <div class="total">Totalt: ~<span class="anim-val" data-val="${Math.round(adjTotal_v*0.9)}">0</span> – <span class="anim-val" data-val="${Math.round(adjTotal_v*1.1)}">0</span> kr <small style="font-weight:normal;font-size:14px">(eks. mva)</small></div>
+      ${seasonMsg_v}
       <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhenger av befaring.</div>
     </div>`;
 
   await botSay(estHtml);
+  animatePriceEls();
   saveToSheets({
     kategori: state.cat||'vindu',
     underkategori: 'Vindusbytting',
     svar: state.answers||{},
     materialTotal: matTotal,
     arbeidTotal: workTotal,
-    totalLav: Math.round(total*0.9),
-    totalHoy: Math.round(total*1.1),
+    totalLav: Math.round(adjTotal_v*0.9),
+    totalHoy: Math.round(adjTotal_v*1.1),
     forhandlet: 'nei',
     pakkepris: 'nei',
     items: items,
     enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
   });
+  localStorage.setItem('lastEstimate', JSON.stringify({
+    category: state.cat||'vindu',
+    categoryName: 'Vindusbytting',
+    total: adjTotal_v,
+    timestamp: Date.now(),
+    contacted: false
+  }));
   // Show alternatives button
   const altBtn2=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
   altBtn2.style.cssText="width:100%;margin-top:4px";
@@ -2962,32 +3015,45 @@ async function gardCalculate(){
 
   let matHtml=items.map(i=>`• ${i.n}`).join("<br>");
   let workHtml=work.map(w=>`• ${w.n}`).join("<br>");
+  const adjTotal_g=Math.round(total*SEASON_FACTOR.factor);
+  const seasonMsg_g=SEASON_FACTOR.label==='Sommersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);border-radius:10px;font-size:13px;color:#f5a623">☀️ Sommersesong — booking nå til vinterpris sparer deg ${Math.round(total*0.15).toLocaleString('nb-NO')} kr</div>`
+    :SEASON_FACTOR.label==='Vintersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:10px;font-size:13px;color:#3498db">❄️ Vinterpris — du sparer ${Math.round(total*0.05).toLocaleString('nb-NO')} kr sammenlignet med sommersesong</div>`
+    :'';
+  state.currentEstimate={...state.currentEstimate,total:adjTotal_g};
+  state.lastTotalLow=Math.round(adjTotal_g*0.9);state.lastTotalHigh=Math.round(adjTotal_g*1.1);
 
   const estHtml=`
     <div class="estimate">
       <strong>🗄️ ${title}</strong>
-      <h4>Materialer</h4>
-      ${matHtml}
-      <h4>Arbeid</h4>
-      ${workHtml}
-      <div class="total">Totalt: ~${fmt(total)} (eks. mva)</div>
+      <div class="total">Totalt: ~<span class="anim-val" data-val="${Math.round(adjTotal_g*0.9)}">0</span> – <span class="anim-val" data-val="${Math.round(adjTotal_g*1.1)}">0</span> kr <small style="font-weight:normal;font-size:14px">(eks. mva)</small></div>
+      ${seasonMsg_g}
       <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhenger av befaring.</div>
     </div>`;
 
   await botSay(estHtml);
+  animatePriceEls();
   saveToSheets({
     kategori: state.cat||'garderobe',
     underkategori: title,
     svar: state.answers||{},
     materialTotal: matTotal,
     arbeidTotal: workTotal,
-    totalLav: Math.round(total*0.9),
-    totalHoy: Math.round(total*1.1),
+    totalLav: Math.round(adjTotal_g*0.9),
+    totalHoy: Math.round(adjTotal_g*1.1),
     forhandlet: 'nei',
     pakkepris: 'nei',
     items: items,
     enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
   });
+  localStorage.setItem('lastEstimate', JSON.stringify({
+    category: state.cat||'garderobe',
+    categoryName: title,
+    total: adjTotal_g,
+    timestamp: Date.now(),
+    contacted: false
+  }));
   if(state.synergyBase){await showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
@@ -3276,32 +3342,45 @@ async function romCalculate(){
 
   let matHtml=items.map(i=>`• ${i.n}`).join("<br>");
   let workHtml=work.map(w=>`• ${w.n}`).join("<br>");
+  const adjTotal_r=Math.round(total*SEASON_FACTOR.factor);
+  const seasonMsg_r=SEASON_FACTOR.label==='Sommersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);border-radius:10px;font-size:13px;color:#f5a623">☀️ Sommersesong — booking nå til vinterpris sparer deg ${Math.round(total*0.15).toLocaleString('nb-NO')} kr</div>`
+    :SEASON_FACTOR.label==='Vintersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:10px;font-size:13px;color:#3498db">❄️ Vinterpris — du sparer ${Math.round(total*0.05).toLocaleString('nb-NO')} kr sammenlignet med sommersesong</div>`
+    :'';
+  state.currentEstimate={...state.currentEstimate,total:adjTotal_r};
+  state.lastTotalLow=Math.round(adjTotal_r*0.9);state.lastTotalHigh=Math.round(adjTotal_r*1.1);
 
   const estHtml=`
     <div class="estimate">
       <strong>🛋️ ${title}</strong>
-      <h4>Materialer</h4>
-      ${matHtml}
-      <h4>Arbeid</h4>
-      ${workHtml}
-      <div class="total">Totalt: ~${fmt(total)} (eks. mva)</div>
+      <div class="total">Totalt: ~<span class="anim-val" data-val="${Math.round(adjTotal_r*0.9)}">0</span> – <span class="anim-val" data-val="${Math.round(adjTotal_r*1.1)}">0</span> kr <small style="font-weight:normal;font-size:14px">(eks. mva)</small></div>
+      ${seasonMsg_r}
       <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhenger av befaring.</div>
     </div>`;
 
   await botSay(estHtml);
+  animatePriceEls();
   saveToSheets({
     kategori: state.cat||'romoppussing',
     underkategori: title,
     svar: state.answers||{},
     materialTotal: matTotal,
     arbeidTotal: workTotal,
-    totalLav: Math.round(total*0.9),
-    totalHoy: Math.round(total*1.1),
+    totalLav: Math.round(adjTotal_r*0.9),
+    totalHoy: Math.round(adjTotal_r*1.1),
     forhandlet: 'nei',
     pakkepris: 'nei',
     items: items,
     enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
   });
+  localStorage.setItem('lastEstimate', JSON.stringify({
+    category: state.cat||'romoppussing',
+    categoryName: title,
+    total: adjTotal_r,
+    timestamp: Date.now(),
+    contacted: false
+  }));
   if(state.synergyBase){await showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
@@ -3457,24 +3536,28 @@ async function showCombinedEstimate(newEst){
 
   const matHtml=allItems.map(i=>`• ${i.n}`).join("<br>");
   const workHtml=allWork.map(w=>`• ${w.n}`).join("<br>");
+  const adjCombined=Math.round(combinedTotal*SEASON_FACTOR.factor);
+  const seasonMsg_c=SEASON_FACTOR.label==='Sommersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);border-radius:10px;font-size:13px;color:#f5a623">☀️ Sommersesong — booking nå til vinterpris sparer deg ${Math.round(combinedTotal*0.15).toLocaleString('nb-NO')} kr</div>`
+    :SEASON_FACTOR.label==='Vintersesong'
+    ?`<div style="margin-top:8px;padding:10px 14px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:10px;font-size:13px;color:#3498db">❄️ Vinterpris — du sparer ${Math.round(combinedTotal*0.05).toLocaleString('nb-NO')} kr sammenlignet med sommersesong</div>`
+    :'';
   const estHtml=`
     <div class="estimate">
       <strong>📦 Pakketilbud — ${base.title} + ${newEst.title}</strong>
-      <h4>Materialer</h4>
-      ${matHtml}
-      <h4>Arbeid</h4>
-      ${workHtml}
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(74,222,128,.2);color:#4ade80;font-weight:600">✅ Pakkerabatt (delt rigg/stillas): -${fmt(riggSaving)} kr</div>
-      <div class="total">Totalt pakketilbud: ~${fmt(combinedTotal)} (eks. mva)</div>
+      <div class="total">Totalt: ~<span class="anim-val" data-val="${Math.round(adjCombined*0.9)}">0</span> – <span class="anim-val" data-val="${Math.round(adjCombined*1.1)}">0</span> kr <small style="font-weight:normal;font-size:14px">(eks. mva)</small></div>
+      ${seasonMsg_c}
       <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhengers av befaring.</div>
     </div>`;
 
-  state.currentEstimate={...newEst,total:combinedTotal,title:`${base.title} + ${newEst.title}`,items:allItems,work:allWork};
+  state.currentEstimate={...newEst,total:adjCombined,title:`${base.title} + ${newEst.title}`,items:allItems,work:allWork};
   state.synergyCategory=`${base.title} + ${newEst.title}`;
-  state.lastMatTotal=allItems.reduce((s,i)=>s+(i.p||0),0);state.lastWorkTotal=allWork.reduce((s,w)=>s+Math.round(w.h*RATE),0);state.lastTotalLow=Math.round(combinedTotal*0.9);state.lastTotalHigh=Math.round(combinedTotal*1.1);state.lastItems=allItems;
+  state.lastMatTotal=allItems.reduce((s,i)=>s+(i.p||0),0);state.lastWorkTotal=allWork.reduce((s,w)=>s+Math.round(w.h*RATE),0);state.lastTotalLow=Math.round(adjCombined*0.9);state.lastTotalHigh=Math.round(adjCombined*1.1);state.lastItems=allItems;
   state.synergyBase=null;
 
   await botSay(estHtml);
+  animatePriceEls();
   saveToSheets({
     kategori: state.cat||'',
     underkategori: state.currentEstimate.title,
@@ -3489,6 +3572,13 @@ async function showCombinedEstimate(newEst){
     items: allItems,
     enhet: /Mobi|Android/i.test(navigator.userAgent)?'mobil':'desktop'
   });
+  localStorage.setItem('lastEstimate', JSON.stringify({
+    category: state.cat||'',
+    categoryName: state.currentEstimate.title,
+    total: adjCombined,
+    timestamp: Date.now(),
+    contacted: false
+  }));
   await botSay(`🎉 Med pakketilbudet sparer du <strong style="color:#4ade80">${fmt(riggSaving)} kr</strong> på delt rigg og stillas!`);
   showNegotiationButtons();
 }
@@ -3543,17 +3633,15 @@ function showNegotiationOptions(){
     state.negotiated=true;state.negotiatedPrice=newTotal;state.lastMatTotal=newMatTotal;state.lastTotalLow=Math.round(newTotal*0.9);state.lastTotalHigh=Math.round(newTotal*1.1);state.lastItems=reducedItems;
     const matHtml=reducedItems.map(i=>`• ${i.n}`).join("<br>");
     const workHtml=est.work.map(w=>`• ${w.n}`).join("<br>");
+    const adjNewTotal=Math.round(newTotal*SEASON_FACTOR.factor);
     const estHtml=`
       <div class="estimate">
         <strong>🏗️ ${est.title} — justert estimat</strong>
-        <h4>Materialer (redusert kvalitet)</h4>
-        ${matHtml}
-        <h4>Arbeid</h4>
-        ${workHtml}
-        <div class="total">Totalt: ~${fmt(newTotal)} (eks. mva)</div>
+        <div class="total">Totalt: ~<span class="anim-val" data-val="${Math.round(adjNewTotal*0.9)}">0</span> – <span class="anim-val" data-val="${Math.round(adjNewTotal*1.1)}">0</span> kr <small style="font-weight:normal;font-size:14px">(eks. mva)</small></div>
         <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhenger av befaring.</div>
       </div>`;
     await botSay(estHtml);
+    animatePriceEls();
     await botSay("Her er justert estimat med rimeligere materialer. Merk: enklere materialer kan ha kortere levetid og kreve mer vedlikehold over tid.");
     showFormalQuoteStep();
   };
@@ -3768,6 +3856,8 @@ function showOtherLeadForm(){
 }
 
 async function submitOtherLead(){
+  const _estLS2 = JSON.parse(localStorage.getItem('lastEstimate') || 'null');
+  if (_estLS2) { _estLS2.contacted = true; localStorage.setItem('lastEstimate', JSON.stringify(_estLS2)); }
   const name=document.getElementById("leadName").value.trim();
   const phone=document.getElementById("leadPhone").value.trim();
   const email=document.getElementById("leadEmail").value.trim();
@@ -4036,6 +4126,21 @@ function openAdmin(){
 function closeAdmin(){document.getElementById("adminOverlay").classList.remove("show")}
 
 // ─── Init ───
+// Voss-oppfølging: «Har du gitt opp X?»
+(function checkVossFollowup() {
+  const lastEst = JSON.parse(localStorage.getItem('lastEstimate') || 'null');
+  if (lastEst && !lastEst.contacted && (Date.now() - lastEst.timestamp > 48 * 60 * 60 * 1000)) {
+    setTimeout(() => {
+      addBot(`Har du gitt opp ${lastEst.categoryName.toLowerCase()}-prosjektet? Estimatet ditt på ${Math.round(lastEst.total * 0.9).toLocaleString('nb-NO')} – ${Math.round(lastEst.total * 1.1).toLocaleString('nb-NO')} kr er fortsatt gyldig.`);
+      const g = document.createElement('div');
+      g.className = 'btn-group';
+      g.style.cssText = 'padding:0 16px 12px';
+      g.innerHTML = '<button class="btn btn-primary" onclick="this.parentElement.remove();showLeadForm()">Ja, jeg er fortsatt interessert</button><button class="btn btn-outline" onclick="this.parentElement.remove();localStorage.removeItem('lastEstimate');addBot('Ingen problem! Du er velkommen tilbake når som helst.')">Ikke akkurat nå</button>';
+      document.getElementById('chat').appendChild(g);
+      chat.scrollTo({top:chat.scrollHeight,behavior:'smooth'});
+    }, 800);
+  }
+})();
 start();
 </script>
 </body>
