@@ -450,7 +450,7 @@ const DB = {
         "Vinylplank":{budget:{label:"Budget",price:336},standard:{label:"Standard",price:473},premium:{label:"Premium",price:742}},
         "Fliser (bad/gang)":{budget:{label:"Budget",price:270},standard:{label:"Standard",price:608},premium:{label:"Premium",price:1215}}
       },tierKey:"type",unit:"kr/m²"},
-      {id:"gulvvarme",q:"Gulvvarme?",opts:["Nei","Elektrisk","Vannbåren"]}
+      {id:"gulvvarme",q:"Gulvvarme?",opts:["Nei — uten gulvvarme","Elektrisk — enklest å installere, lavere installasjonskostnad, passer best i bad og mindre rom","Vannbåren — lavere strømkostnader over tid, best for store flater, krever mer installasjon"]}
     ],
     calc(a){
       const areas={"Under 20 m²":15,"20–40 m²":30,"40–80 m²":60,"Over 80 m²":100};
@@ -469,13 +469,15 @@ const DB = {
       }
       items.push({n:"Lister/overganger",p:m2*40});
       // Gulvvarme
-      if(a.gulvvarme==="Elektrisk"){items.push({n:`Elektrisk gulvvarme (${m2} m²)`,p:m2*878})}
-      else if(a.gulvvarme==="Vannbåren"){items.push({n:`Vannbåren gulvvarme (${m2} m²)`,p:m2*1688})}
+      const harElektrisk=a.gulvvarme&&a.gulvvarme.startsWith("Elektrisk");
+      const harVannbaren=a.gulvvarme&&a.gulvvarme.startsWith("Vannbåren");
+      if(harElektrisk){items.push({n:`Elektrisk gulvvarme (${m2} m²)`,p:m2*878,_gulvvarme:true})}
+      else if(harVannbaren){items.push({n:`Vannbåren gulvvarme (${m2} m²)`,p:m2*1688,_gulvvarme:true})}
       items.push({n:"Rigg/transport",p:7020});
       items.push({n:"Avfallshåndtering",p:isFliser?m2*54+2025:3375});
       let gulvvarmeWork=[];
-      if(a.gulvvarme==="Elektrisk"){gulvvarmeWork=[{n:"Legging gulvvarme (elektrisk)",h:m2*0.15}]}
-      else if(a.gulvvarme==="Vannbåren"){gulvvarmeWork=[{n:"Legging gulvvarme (vannbåren)",h:m2*0.3}]}
+      if(harElektrisk){gulvvarmeWork=[{n:"Legging gulvvarme (elektrisk)",h:m2*0.15,_gulvvarme:true}]}
+      else if(harVannbaren){gulvvarmeWork=[{n:"Legging gulvvarme (vannbåren)",h:m2*0.3,_gulvvarme:true}]}
       return{title:`Gulvlegging — ${a.type}, ~${m2} m²`,items,work:[
         {n:"Fjerning gammelt gulv",h:m2*(riveTid[a.type]||0.1)},
         {n:"Legging nytt gulv",h:m2*(isFliser?0.5:0.25)},
@@ -2260,12 +2262,9 @@ async function generateEstimate(){
     timestamp: Date.now(),
     contacted: false
   }));
-  // Show alternatives button
-  const altBtn=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
-  altBtn.style.cssText="width:100%;margin-top:4px";
-  altBtn.onclick=()=>{altBtn.remove();showAlternatives()};
-  const altWrap=el("div","msg bot");altWrap.appendChild(altBtn);altWrap.style.maxWidth="95%";
-  chat.appendChild(altWrap);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+  // Show gulvvarme toggle if applicable
+  const hasGV=state.currentEstimate&&state.currentEstimate.items&&state.currentEstimate.items.some(i=>i._gulvvarme);
+  if(hasGV){showGulvvarmeToggle(state.currentEstimate);}
   if(state.synergyBase){showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
@@ -2778,12 +2777,6 @@ async function winCalculate(){
     timestamp: Date.now(),
     contacted: false
   }));
-  // Show alternatives button
-  const altBtn2=el("button","btn btn-outline","📊 Se alternativer (3 prisklasser)");
-  altBtn2.style.cssText="width:100%;margin-top:4px";
-  altBtn2.onclick=()=>{altBtn2.remove();showAlternatives()};
-  const altWrap2=el("div","msg bot");altWrap2.appendChild(altBtn2);altWrap2.style.maxWidth="95%";
-  chat.appendChild(altWrap2);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
   if(state.synergyBase){showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
@@ -3380,6 +3373,58 @@ async function romCalculate(){
   if(state.synergyBase){await showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
+// ─── Gulvvarme Toggle ───
+async function showGulvvarmeToggle(est){
+  if(!est||!est.items||!est.items.some(i=>i._gulvvarme))return;
+  state._gulvvarmePa=true;
+  const gvItems=est.items.filter(i=>i._gulvvarme);
+  const gvWork=(est.work||[]).filter(w=>w._gulvvarme);
+  const gvMatCost=gvItems.reduce((s,i)=>s+(i.p||0),0);
+  const gvWorkCost=gvWork.reduce((s,w)=>s+Math.round((w.h||0)*RATE),0);
+  const gvTotal=gvMatCost+gvWorkCost;
+
+  const toggleWrap=el("div","msg bot");toggleWrap.style.maxWidth="95%";
+  const btn=el("button","btn btn-outline","");
+  btn.style.cssText="width:100%;font-size:15px;border-radius:14px;min-height:50px;font-weight:600";
+
+  function updateToggle(){
+    if(state._gulvvarmePa){
+      btn.textContent="🔥 Gulvvarme: PÅ — klikk for å se pris uten";
+      btn.style.borderColor="rgba(239,100,6,.5)";
+      btn.style.color="#f5a623";
+    } else {
+      btn.textContent="❄️ Gulvvarme: AV — klikk for å se pris med";
+      btn.style.borderColor="rgba(52,152,219,.5)";
+      btn.style.color="#3498db";
+    }
+  }
+  updateToggle();
+
+  btn.onclick=()=>{
+    state._gulvvarmePa=!state._gulvvarmePa;
+    updateToggle();
+    const delta=state._gulvvarmePa?gvTotal:-gvTotal;
+    const curEst=state.currentEstimate;
+    const newTotal=curEst.total+delta;
+    const newLow=Math.round(newTotal*0.9);
+    const newHigh=Math.round(newTotal*1.1);
+    // Update displayed price els (last estimate bubble)
+    const allAnimEls=chat.querySelectorAll('.estimate .anim-val');
+    const lastTwo=[...allAnimEls].slice(-2);
+    if(lastTwo.length===2){
+      lastTwo[0].dataset.val=newLow;lastTwo[0].dataset.done='';
+      lastTwo[1].dataset.val=newHigh;lastTwo[1].dataset.done='';
+      animatePriceEls();
+    }
+    state.currentEstimate={...curEst,total:newTotal};
+    state.lastTotalLow=newLow;state.lastTotalHigh=newHigh;
+  };
+
+  toggleWrap.appendChild(btn);
+  chat.appendChild(toggleWrap);
+  chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+}
+
 // ─── 3 Prisklasse-alternativer ───
 function getCategoryMaterials(catKey){
   const mats={
@@ -3659,6 +3704,35 @@ function showNegotiationOptions(){
 }
 
 // ─── Formal Quote Step ───
+async function showAnotherJobOffer(thenShowLeadForm){
+  const wrap=el("div","msg bot");wrap.style.maxWidth="95%";
+  const grp=el("div","btn-group");
+  grp.style.cssText="display:flex;flex-direction:column;gap:8px;margin-top:6px";
+
+  const btnYes=el("button","btn btn-outline","✏️ Ja, få estimat på en annen jobb");
+  btnYes.style.cssText="width:100%;font-size:15px;border-radius:14px;min-height:50px";
+  btnYes.onclick=()=>{
+    grp.querySelectorAll("button").forEach(b=>b.disabled=true);
+    addMsg("Ja, få estimat på en annen jobb","user");
+    askJobDescription();
+  };
+
+  const btnNo=el("button","btn btn-primary","Nei, gå videre til kontakt");
+  btnNo.style.cssText="width:100%;font-size:15px;border-radius:14px;min-height:50px";
+  btnNo.onclick=()=>{
+    grp.querySelectorAll("button").forEach(b=>b.disabled=true);
+    addMsg("Nei, gå videre til kontakt","user");
+    if(thenShowLeadForm)thenShowLeadForm();else showLeadForm();
+  };
+
+  grp.appendChild(btnYes);
+  grp.appendChild(btnNo);
+  wrap.appendChild(grp);
+  await botSay("Har du en annen jobb du vil ha estimat på? 👇");
+  chat.appendChild(wrap);
+  chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+}
+
 async function showFormalQuoteStep(){
   state.step="formal_quote";
   const infoHtml=`📋 <strong>Trenger du et formelt tilbud?</strong>
@@ -3688,7 +3762,7 @@ async function showFormalQuoteStep(){
     addMsg("Nei takk, bare estimat","user");
     if(!state.leadExtra)state.leadExtra={};
     state.leadExtra.formalQuote=false;
-    botSay("Estimatet er klart. 🏗️<br><br>Vil du gå videre med en <strong>videobefaring</strong>? Vi gjennomgår jobben sammen og gir deg endelig pris.").then(()=>showLeadForm());
+    showAnotherJobOffer(()=>botSay("Estimatet er klart. 🏗️<br><br>Vil du gå videre med en <strong>videobefaring</strong>? Vi gjennomgår jobben sammen og gir deg endelig pris.").then(()=>showLeadForm()));
   };
   grp.append(bY,bN);
   await botSay(infoHtml,grp);
@@ -3701,7 +3775,7 @@ async function askQuoteReason(){
     b.onclick=()=>{
       state.leadExtra.quoteReason=r.toLowerCase();
       addMsg(r,"user");
-      botSay("Greit. Legg igjen kontaktinfo, så sender vi deg en lenke til videobefaring 📞").then(()=>showLeadForm());
+      showAnotherJobOffer(()=>botSay("Greit. Legg igjen kontaktinfo, så sender vi deg en lenke til videobefaring 📞").then(()=>showLeadForm()));
     };
     grp.appendChild(b);
   });
