@@ -2,8 +2,11 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Industrielle AS — Priskalkulator</title>
+<meta name="description" content="Få et raskt prisestimat på ditt byggeprosjekt. Prisassistent for håndverkertjenester — betong, snekker, maler og mer.">
+<link rel="canonical" href="https://industrielle-kalkulator.vercel.app">
+<meta name="robots" content="index, follow">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#191A19;--chat-bg:#191A19;--bubble-bot:#2a2a2a;--bubble-user:#ef1006;--accent:#ef1006;--accent-hover:#c40d05;--text:#e8e8e8;--text-dim:#888;--text-dark:#ffffff;--radius:20px;--shadow:0 4px 20px rgba(0,0,0,.4)}
@@ -1803,6 +1806,7 @@ async function showMainCategories(){
   const grid=el("div","cat-grid main-grid");
   for(const[key,grp] of Object.entries(MAIN_GROUPS)){
     const b=el("button","cat-btn main-cat",`<span class="ico">${grp.ico}</span> ${grp.name}`);
+    b.setAttribute("aria-label",grp.name);
     if(key==="annet"){
       b.onclick=()=>pickOther();
     } else {
@@ -1826,6 +1830,7 @@ async function showSubCategories(groupKey){
 
   // Back button
   const backBtn=el("button","cat-btn back-btn","← Tilbake");
+  backBtn.setAttribute("aria-label","Tilbake til hovedkategorier");
   backBtn.onclick=()=>{
     addMsg("← Tilbake","user");
     showMainCategories();
@@ -1837,11 +1842,13 @@ async function showSubCategories(groupKey){
     const cat=DB[catKey];
     if(!cat)continue;
     const b=el("button","cat-btn",`<span class="ico">${cat.ico}</span> ${cat.name}`);
+    b.setAttribute("aria-label",cat.name);
     b.onclick=()=>pickCat(catKey);
     grid.appendChild(b);
     // Add Etterisolering shortcut after Fasade/Kledning in Utvendig
     if(groupKey==="utvendig"&&catKey==="kledning"){
       const eb=el("button","cat-btn",`<span class="ico">🧱</span> Etterisolering`);
+      eb.setAttribute("aria-label","Etterisolering");
       eb.onclick=()=>{
         state.cat="kledning";state.answers={etterisolering:"Ja, 100mm krysslektet"};state.qIdx=0;state.step="questions";
         addMsg("🧱 Etterisolering","user");
@@ -3309,6 +3316,7 @@ async function showSynergyOffer(currentCategory){
     const saving=fmt(riggCost);
 
     const btn=el("button","cat-btn");
+    btn.setAttribute("aria-label",`Legg til ${pairName}`);
     btn.innerHTML=`<span class="ico">${pairIco}</span><span>➕ ${pairName}<br><small style="color:#4ade80;font-size:11px">~${saving} kr spart</small></span>`;
     btn.onclick=async()=>{
       grid.querySelectorAll("button").forEach(b=>b.disabled=true);
@@ -3333,6 +3341,7 @@ async function showSynergyOffer(currentCategory){
   });
 
   const btnNo=el("button","cat-btn back-btn");
+  btnNo.setAttribute("aria-label","Nei takk, gå videre");
   btnNo.style.cssText="grid-column:1/-1";
   btnNo.textContent="Nei takk, gå videre";
   btnNo.onclick=()=>{
