@@ -3150,16 +3150,12 @@ async function askRomStep(){
     }
   }
   else if(step===3.5){
-    // Gulv material price tier
+    // Auto-select standard tier — never show price choice to customer
     const tiers={"Laminat":{b:199,s:280,p:450},"Parkett":{b:350,s:520,p:850},"Vinyl":{b:249,s:350,p:550},"Flis":{b:200,s:450,p:900}};
     const t=tiers[rd.gulvType]||tiers["Laminat"];
-    const grp=el("div","btn-group");
-    [["Budget",t.b],["Standard",t.s],["Premium",t.p]].forEach(([label,price])=>{
-      const b=el("button","btn btn-outline btn-small",`${label} (${price} kr/m²)`);
-      b.onclick=()=>{rd.gulvMatpris=price;addMsg(`${label}: ${price} kr/m²`,"user");state.romStep=4;delay(200).then(()=>askRomStep())};
-      grp.appendChild(b);
-    });
-    await botSay("Materialpris for gulv?",grp);
+    rd.gulvMatpris=t.s;
+    state.romStep=4;
+    askRomStep();
   }
   else if(step===4){
     if(rd.tasks.includes("vegger")){
