@@ -346,20 +346,18 @@ const DB = {
     questions: [
       {id:"type",q:"Type dør?",opts:["Innerdør","Ytterdør","Skyvedør","Garasjeport"]},
       {id:"antall",q:"Antall dører?",opts:["1","2","3","4","5","6","7","8","9","10"]},
-      {id:"quality",q:"Kvalitetsnivå?",opts:["Standard","Middels","Premium"],condition:(a)=>a.type==="Ytterdør"||a.type==="Innerdør"},
       {id:"extras",q:"Tillegg?",opts:["Ny karm","Nytt låskasse/beslag","Begge","Ingen"]}
     ],
     calc(a){
       const count=parseInt(a.antall)||1;
-      const innerPrices={"Standard":{mat:4725,hrs:2.5},"Middels":{mat:7425,hrs:3},"Premium":{mat:11475,hrs:3.5}};
-      const outerPrices={"Standard":{mat:24300,hrs:5},"Middels":{mat:33750,hrs:5.5},"Premium":{mat:47250,hrs:6}};
+      const innerPrices={"Standard":{mat:4725,hrs:2.5}};
+      const outerPrices={"Standard":{mat:24300,hrs:5}};
       const otherPrices={"Skyvedør":{mat:27000,hrs:6},"Garasjeport":{mat:33750,hrs:7}};
       let d;
-      const q=a.quality||"Standard";
-      if(a.type==="Innerdør")d=innerPrices[q]||innerPrices["Standard"];
-      else if(a.type==="Ytterdør")d=outerPrices[q]||outerPrices["Standard"];
+      if(a.type==="Innerdør")d=innerPrices["Standard"];
+      else if(a.type==="Ytterdør")d=outerPrices["Standard"];
       else d=otherPrices[a.type]||otherPrices["Skyvedør"];
-      const qualLabel=(a.type==="Innerdør"||a.type==="Ytterdør")?` (${q.toLowerCase()})`:"";
+      const qualLabel="";
       const cLbl=count>1?` (${count} stk)`:"";
       let items=[{n:a.type+qualLabel+cLbl,p:d.mat*count}];let work=[{n:"Demontering + montering"+cLbl,h:d.hrs*count}];
       if(a.extras==="Ny karm"||a.extras==="Begge"){items.push({n:"Ny karm"+cLbl,p:(a.type==="Ytterdør"?4050:2700)*count});work.push({n:"Karm-tilpasning"+cLbl,h:1.5*count})}
