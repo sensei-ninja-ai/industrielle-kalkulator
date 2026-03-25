@@ -190,6 +190,8 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 <script>
 // ─── Config ───
 const CAL_URL = "https://cal.com/industrielle";
+// BEDRIFTSPROFIL: Løsningsorientert, profesjonell, trygg
+const PHONE_NUMBER = "777 00 000"; // TODO: oppdater med riktig telefonnummer
 
 // ─── Category Grouping ───
 const MAIN_GROUPS = {
@@ -235,7 +237,7 @@ const DB = {
       {id:"area",q:"Omtrent hvor mange m² skal kles?",opts:["Under 20 m²","20–50 m²","50–100 m²","Over 100 m²"],midvals:{"Under 20 m²":10,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120}},
       {id:"type",q:"Type kledning?",opts:["Stående panel","Liggende panel","Lektekledning","Annet"]},
       {id:"matpris",q:"Hva koster kledningsmaterialet per m²?",priceTiers:{
-        "_default":{budget:{label:"Budget",price:338},standard:{label:"Standard",price:494},premium:{label:"Premium",price:754}}
+        "_default":{budget:{label:"Budget",price:456},standard:{label:"Standard",price:667},premium:{label:"Premium",price:1018}}
       },tierKey:"type",unit:"kr/m²"},
       {id:"etterisolering",q:"Skal det etterisoleres?",opts:["Nei, bare ny kledning","Ja, 50mm","Ja, 100mm krysslektet"]}
     ],
@@ -246,17 +248,17 @@ const DB = {
       const hasIso=a.etterisolering&&!a.etterisolering.includes("Nei");
       let items=[
         {n:`Kledning ${a.type} (${m2} m²)`,p:m2*mp},
-        {n:"Lekter/underlag",p:m2*(hasIso?110:72)},
-        {n:"Skruer/beslag",p:m2*77},
-        {n:"Vindsperre",p:m2*94},
-        {n:"Hjørnebord/vannbord/belistning",p:m2*156},
-        {n:"Overflatebehandling (beis 2 strøk)",p:m2*195},
-        {n:"Rigg/transport",p:5200},
-        {n:"Avfallshåndtering",p:m2*48+2400}
+        {n:"Lekter/underlag",p:m2*(hasIso?148:97)},
+        {n:"Skruer/beslag",p:m2*104},
+        {n:"Vindsperre",p:m2*127},
+        {n:"Hjørnebord/vannbord/belistning",p:m2*211},
+        {n:"Overflatebehandling (beis 2 strøk)",p:m2*263},
+        {n:"Rigg/transport",p:7020},
+        {n:"Avfallshåndtering",p:m2*65+3240}
       ];
       let work=[{n:"Riving av gammel kledning",h:m2*0.18},{n:"Montering ny kledning",h:m2*0.42},{n:"Overflatebehandling",h:m2*0.18}];
-      if(a.etterisolering&&a.etterisolering.includes("50mm")){items.push({n:"Etterisolering 50mm",p:m2*208});work.push({n:"Etterisolering 50mm",h:m2*0.36})}
-      else if(a.etterisolering&&a.etterisolering.includes("100mm")){items.push({n:"Etterisolering 100mm krysslektet",p:m2*338});work.push({n:"Etterisolering 100mm",h:m2*0.6})}
+      if(a.etterisolering&&a.etterisolering.includes("50mm")){items.push({n:"Etterisolering 50mm",p:m2*281});work.push({n:"Etterisolering 50mm",h:m2*0.36})}
+      else if(a.etterisolering&&a.etterisolering.includes("100mm")){items.push({n:"Etterisolering 100mm krysslektet",p:m2*456});work.push({n:"Etterisolering 100mm",h:m2*0.6})}
       let title=`Fasadekledning — ${a.type}, ~${m2} m²`;
       if(hasIso)title+=` (m/etterisolering)`;
       return{title,items,work}
@@ -269,18 +271,18 @@ const DB = {
       {id:"area",q:"Størrelse på terrassen?",opts:["Under 15 m²","15–30 m²","30–50 m²","Over 50 m²"],midvals:{"Under 15 m²":12,"15–30 m²":22,"30–50 m²":40,"Over 50 m²":60}},
       {id:"material",q:"Materiale?",opts:["Trykkimpregnert","Royal","Kebony","Kompositt"]},
       {id:"terrassematpris",q:"Materialkvalitet for terrassebord?",priceTiers:{
-        "Trykkimpregnert":{budget:{label:"Standard trykkimpregnert",price:300},standard:{label:"Middels",price:380},premium:{label:"Premium nordisk furu",price:520}},
-        "Royal":{budget:{label:"Standard Royal",price:400},standard:{label:"Middels",price:520},premium:{label:"Premium Royal XL",price:700}},
-        "Kebony":{budget:{label:"Standard Kebony",price:650},standard:{label:"Middels",price:850},premium:{label:"Premium Kebony Clear",price:1100}},
-        "Kompositt":{budget:{label:"Standard kompositt",price:450},standard:{label:"Middels",price:650},premium:{label:"Premium solid kompositt",price:900}}
+        "Trykkimpregnert":{budget:{label:"Standard trykkimpregnert",price:405},standard:{label:"Middels",price:513},premium:{label:"Premium nordisk furu",price:702}},
+        "Royal":{budget:{label:"Standard Royal",price:540},standard:{label:"Middels",price:702},premium:{label:"Premium Royal XL",price:945}},
+        "Kebony":{budget:{label:"Standard Kebony",price:878},standard:{label:"Middels",price:1148},premium:{label:"Premium Kebony Clear",price:1485}},
+        "Kompositt":{budget:{label:"Standard kompositt",price:608},standard:{label:"Middels",price:878},premium:{label:"Premium solid kompositt",price:1215}}
       },tierKey:"material",unit:"kr/m²"},
       {id:"hoyde",q:"Høyde over bakken?",opts:["0–30 cm (bakkenivå)","30–100 cm","Over 100 cm"]},
       {id:"rekkverkType",q:"Rekkverk (påkrevd over 0.5m) — type?",opts:["Tre","Glass","Stål","Wire"],condition:(a)=>a.hoyde==="30–100 cm"||a.hoyde==="Over 100 cm"},
       {id:"rekkverkKvalitet",q:"Rekkverk kvalitetsnivå?",priceTiers:{
-        "Tre":{budget:{label:"Standard trykkimpregnert",price:1400},standard:{label:"Middels malt/beist tre",price:1800},premium:{label:"Premium hardtre/kompositt",price:2800}},
-        "Glass":{budget:{label:"Standard herdet glass",price:4500},standard:{label:"Middels klarglass system",price:5500},premium:{label:"Premium kanalinnfelling",price:8000}},
-        "Stål":{budget:{label:"Standard galvanisert",price:3000},standard:{label:"Middels pulverlakkert",price:3800},premium:{label:"Premium rustfritt stål",price:5500}},
-        "Wire":{budget:{label:"Standard wire+tre",price:2000},standard:{label:"Middels wire+stål",price:2800},premium:{label:"Premium spennsystem",price:4000}}
+        "Tre":{budget:{label:"Standard trykkimpregnert",price:1890},standard:{label:"Middels malt/beist tre",price:2430},premium:{label:"Premium hardtre/kompositt",price:3780}},
+        "Glass":{budget:{label:"Standard herdet glass",price:6075},standard:{label:"Middels klarglass system",price:7425},premium:{label:"Premium kanalinnfelling",price:10800}},
+        "Stål":{budget:{label:"Standard galvanisert",price:4050},standard:{label:"Middels pulverlakkert",price:5130},premium:{label:"Premium rustfritt stål",price:7425}},
+        "Wire":{budget:{label:"Standard wire+tre",price:2700},standard:{label:"Middels wire+stål",price:3780},premium:{label:"Premium spennsystem",price:5400}}
       },tierKey:"rekkverkType",unit:"kr/lm",condition:(a)=>a.hoyde==="30–100 cm"||a.hoyde==="Over 100 cm"},
       {id:"rekkverkLengde",q:"Lengde rekkverk (løpemeter)?",opts:["Under 5 lm","5–10 lm","10–20 lm","Over 20 lm"],midvals:{"Under 5 lm":4,"5–10 lm":7,"10–20 lm":15,"Over 20 lm":25},condition:(a)=>a.hoyde==="30–100 cm"||a.hoyde==="Over 100 cm"},
       {id:"trapp",q:"Trapp ned fra terrassen?",opts:["Ja","Nei"],condition:(a)=>a.hoyde!=="0–30 cm (bakkenivå)"},
@@ -292,12 +294,12 @@ const DB = {
       const m2=a.area_m2||areas[a.area]||22;const mp=a.terrassematpris||matPrisDefault[a.material]||380;
       let items=[
         {n:`Terrassebord ${a.material} (${m2} m²)`,p:m2*mp},
-        {n:"Fundament (pilarer/betongklosser)",p:m2*180},
-        {n:"Bjelkelag",p:m2*280},
-        {n:"Skruer/beslag",p:m2*55},
-        {n:"Grunnarbeid (graving, pukk)",p:m2*130},
-        {n:"Rigg/transport",p:5200},
-        {n:"Avfallshåndtering",p:2500}
+        {n:"Fundament (pilarer/betongklosser)",p:m2*243},
+        {n:"Bjelkelag",p:m2*378},
+        {n:"Skruer/beslag",p:m2*74},
+        {n:"Grunnarbeid (graving, pukk)",p:m2*176},
+        {n:"Rigg/transport",p:7020},
+        {n:"Avfallshåndtering",p:3375}
       ];
       let work=[{n:"Grunnarbeid/fundamenter",h:m2*0.35},{n:"Bjelkelag",h:m2*0.3},{n:"Legging av terrassebord",h:m2*0.3}];
       // Rekkverk
@@ -311,7 +313,7 @@ const DB = {
       // Trapp
       if(a.trapp==="Ja"){
         const trinnCount={"3–5 trinn":4,"6–10 trinn":8,"Over 10 trinn":13}[a.trappTrinn]||5;
-        items.push({n:`Trapp (${trinnCount} trinn)`,p:trinnCount*1500});
+        items.push({n:`Trapp (${trinnCount} trinn)`,p:trinnCount*2025});
         work.push({n:`Bygging trapp (${trinnCount} trinn)`,h:trinnCount*0.8});
       }
       let title=`Terrasse — ${a.material}, ~${m2} m²`;
@@ -330,9 +332,9 @@ const DB = {
     ],
     calc(a){
       const count=parseInt(a.antall)||1;
-      const innerPrices={"Standard":{mat:3500,hrs:2.5},"Middels":{mat:5500,hrs:3},"Premium":{mat:8500,hrs:3.5}};
-      const outerPrices={"Standard":{mat:18000,hrs:5},"Middels":{mat:25000,hrs:5.5},"Premium":{mat:35000,hrs:6}};
-      const otherPrices={"Skyvedør":{mat:20000,hrs:6},"Garasjeport":{mat:25000,hrs:7}};
+      const innerPrices={"Standard":{mat:4725,hrs:2.5},"Middels":{mat:7425,hrs:3},"Premium":{mat:11475,hrs:3.5}};
+      const outerPrices={"Standard":{mat:24300,hrs:5},"Middels":{mat:33750,hrs:5.5},"Premium":{mat:47250,hrs:6}};
+      const otherPrices={"Skyvedør":{mat:27000,hrs:6},"Garasjeport":{mat:33750,hrs:7}};
       let d;
       const q=a.quality||"Standard";
       if(a.type==="Innerdør")d=innerPrices[q]||innerPrices["Standard"];
@@ -341,12 +343,12 @@ const DB = {
       const qualLabel=(a.type==="Innerdør"||a.type==="Ytterdør")?` (${q.toLowerCase()})`:"";
       const cLbl=count>1?` (${count} stk)`:"";
       let items=[{n:a.type+qualLabel+cLbl,p:d.mat*count}];let work=[{n:"Demontering + montering"+cLbl,h:d.hrs*count}];
-      if(a.extras==="Ny karm"||a.extras==="Begge"){items.push({n:"Ny karm"+cLbl,p:(a.type==="Ytterdør"?3000:2000)*count});work.push({n:"Karm-tilpasning"+cLbl,h:1.5*count})}
-      if(a.extras==="Nytt låskasse/beslag"||a.extras==="Begge"){items.push({n:"Lås/beslag"+cLbl,p:(a.type==="Ytterdør"?2000:1400)*count})}
-      items.push({n:"Fuge/isolasjon"+cLbl,p:(a.type==="Ytterdør"?600:350)*count});
-      if(a.type==="Ytterdør"){items.push({n:"Terskel"+cLbl,p:500*count})}
-      items.push({n:"Avfallshåndtering",p:500*count});
-      items.push({n:"Rigg/transport",p:5200});
+      if(a.extras==="Ny karm"||a.extras==="Begge"){items.push({n:"Ny karm"+cLbl,p:(a.type==="Ytterdør"?4050:2700)*count});work.push({n:"Karm-tilpasning"+cLbl,h:1.5*count})}
+      if(a.extras==="Nytt låskasse/beslag"||a.extras==="Begge"){items.push({n:"Lås/beslag"+cLbl,p:(a.type==="Ytterdør"?2700:1890)*count})}
+      items.push({n:"Fuge/isolasjon"+cLbl,p:(a.type==="Ytterdør"?810:473)*count});
+      if(a.type==="Ytterdør"){items.push({n:"Terskel"+cLbl,p:675*count})}
+      items.push({n:"Avfallshåndtering",p:675*count});
+      items.push({n:"Rigg/transport",p:7020});
       return{title:`${a.type}-installasjon${qualLabel} × ${count}`,items,work}
     }
   },
@@ -357,36 +359,36 @@ const DB = {
       {id:"area",q:"Hvor mange m²?",opts:["Under 15 m²","15–30 m²","30–60 m²","Over 60 m²"],midvals:{"Under 15 m²":12,"15–30 m²":22,"30–60 m²":45,"Over 60 m²":75}},
       {id:"type",q:"Type panel?",opts:["Furupanel","MDF-panel","Slettvegg (gips)","Tømmermannskledning"]},
       {id:"materialpris",q:"Materialpriskategori?",priceTiers:{
-        "Furupanel":{budget:{label:"Standard gran/furu",price:155},standard:{label:"Middels kvalitet",price:185},premium:{label:"Premium eik/osp",price:310}},
-        "MDF-panel":{budget:{label:"Standard MDF",price:165},standard:{label:"Middels MDF",price:220},premium:{label:"Premium MDF/finér",price:320}},
-        "Slettvegg (gips)":{budget:{label:"Standard gips",price:110},standard:{label:"Middels",price:145},premium:{label:"Brann/våtrom gips",price:200}},
-        "Tømmermannskledning":{budget:{label:"Standard gran",price:210},standard:{label:"Middels furu/osp",price:280},premium:{label:"Premium eik/ask",price:400}}
+        "Furupanel":{budget:{label:"Standard gran/furu",price:209},standard:{label:"Middels kvalitet",price:250},premium:{label:"Premium eik/osp",price:418}},
+        "MDF-panel":{budget:{label:"Standard MDF",price:223},standard:{label:"Middels MDF",price:297},premium:{label:"Premium MDF/finér",price:432}},
+        "Slettvegg (gips)":{budget:{label:"Standard gips",price:148},standard:{label:"Middels",price:196},premium:{label:"Brann/våtrom gips",price:270}},
+        "Tømmermannskledning":{budget:{label:"Standard gran",price:284},standard:{label:"Middels furu/osp",price:378},premium:{label:"Premium eik/ask",price:540}}
       },tierKey:"type",unit:"kr/m²"}
     ],
     calc(a){
       const areas={"Under 15 m²":12,"15–30 m²":22,"30–60 m²":45,"Over 60 m²":75};
       const m2=a.area_m2||areas[a.area]||22;
-      const matPris={"Furupanel":185,"MDF-panel":220,"Slettvegg (gips)":145,"Tømmermannskledning":280};
+      const matPris={"Furupanel":250,"MDF-panel":297,"Slettvegg (gips)":196,"Tømmermannskledning":378};
       const mp=a.materialpris||matPris[a.type]||185;
-      let items=[{n:`${a.type} (${m2} m²)`,p:m2*mp},{n:"Lekter/innfesting",p:m2*55}];
+      let items=[{n:`${a.type} (${m2} m²)`,p:m2*mp},{n:"Lekter/innfesting",p:m2*74}];
       let work=[{n:"Forberedelse/lekting",h:m2*0.15},{n:"Montering panel",h:m2*0.3}];
       if(a.type==="Slettvegg (gips)"){
-        items.push({n:"Gipsskruer/tape/sparkel",p:m2*40});
-        items.push({n:"Maling (gips)",p:m2*25});
+        items.push({n:"Gipsskruer/tape/sparkel",p:m2*54});
+        items.push({n:"Maling (gips)",p:m2*34});
         work.push({n:"Sparkling + maling",h:m2*0.2});
       } else if(a.type==="Furupanel"){
-        items.push({n:"Dykkert/spiker",p:m2*20});
-        items.push({n:"Beis/maling",p:m2*35});
+        items.push({n:"Dykkert/spiker",p:m2*27});
+        items.push({n:"Beis/maling",p:m2*47});
         work.push({n:"Beis/maling",h:m2*0.1});
       } else if(a.type==="MDF-panel"){
-        items.push({n:"Dykkert/lim",p:m2*25});
+        items.push({n:"Dykkert/lim",p:m2*34});
       } else if(a.type==="Tømmermannskledning"){
-        items.push({n:"Dykkert/spiker",p:m2*20});
-        items.push({n:"Oljebehandling",p:m2*25});
+        items.push({n:"Dykkert/spiker",p:m2*27});
+        items.push({n:"Oljebehandling",p:m2*34});
         work.push({n:"Oljebehandling",h:m2*0.05});
       }
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`Innvendig ${a.type} — ~${m2} m²`,items,work}
     }
   },
@@ -397,34 +399,34 @@ const DB = {
       {id:"area",q:"Antall m²?",opts:["Under 20 m²","20–40 m²","40–80 m²","Over 80 m²"],midvals:{"Under 20 m²":15,"20–40 m²":30,"40–80 m²":60,"Over 80 m²":100}},
       {id:"type",q:"Type gulv?",opts:["Laminat","Parkett eik","Vinylplank","Fliser (bad/gang)"]},
       {id:"matpris",q:"Hva koster gulvmaterialet per m²?",priceTiers:{
-        "Laminat":{budget:{label:"Budget",price:199},standard:{label:"Standard",price:280},premium:{label:"Premium",price:450}},
-        "Parkett eik":{budget:{label:"Budget",price:350},standard:{label:"Standard",price:520},premium:{label:"Premium",price:850}},
-        "Vinylplank":{budget:{label:"Budget",price:249},standard:{label:"Standard",price:350},premium:{label:"Premium",price:550}},
-        "Fliser (bad/gang)":{budget:{label:"Budget",price:200},standard:{label:"Standard",price:450},premium:{label:"Premium",price:900}}
+        "Laminat":{budget:{label:"Budget",price:269},standard:{label:"Standard",price:378},premium:{label:"Premium",price:608}},
+        "Parkett eik":{budget:{label:"Budget",price:473},standard:{label:"Standard",price:702},premium:{label:"Premium",price:1148}},
+        "Vinylplank":{budget:{label:"Budget",price:336},standard:{label:"Standard",price:473},premium:{label:"Premium",price:742}},
+        "Fliser (bad/gang)":{budget:{label:"Budget",price:270},standard:{label:"Standard",price:608},premium:{label:"Premium",price:1215}}
       },tierKey:"type",unit:"kr/m²"},
       {id:"gulvvarme",q:"Gulvvarme?",opts:["Nei","Elektrisk","Vannbåren"]}
     ],
     calc(a){
       const areas={"Under 20 m²":15,"20–40 m²":30,"40–80 m²":60,"Over 80 m²":100};
-      const defaultPris={"Laminat":280,"Parkett eik":520,"Vinylplank":350,"Fliser (bad/gang)":450};
+      const defaultPris={"Laminat":378,"Parkett eik":702,"Vinylplank":473,"Fliser (bad/gang)":608};
       const m2=a.area_m2||areas[a.area]||30;const mp=a.matpris||defaultPris[a.type]||280;
       const isFliser=a.type==="Fliser (bad/gang)";
       const riveTid={"Laminat":0.08,"Parkett eik":0.08,"Vinylplank":0.05,"Fliser (bad/gang)":0.4};
       let items=[{n:`${a.type} (${m2} m²)`,p:m2*mp}];
       if(isFliser){
-        items.push({n:"Flislim",p:m2*70});
-        items.push({n:"Avrettingsmasse",p:m2*60});
-        items.push({n:"Fugmasse/kryss",p:m2*30});
-        items.push({n:"Membran (våtrom)",p:m2*80});
+        items.push({n:"Flislim",p:m2*94});
+        items.push({n:"Avrettingsmasse",p:m2*81});
+        items.push({n:"Fugmasse/kryss",p:m2*40});
+        items.push({n:"Membran (våtrom)",p:m2*108});
       } else {
-        items.push({n:"Underlag/fuktsperre",p:m2*45});
+        items.push({n:"Underlag/fuktsperre",p:m2*61});
       }
-      items.push({n:"Lister/overganger",p:m2*30});
+      items.push({n:"Lister/overganger",p:m2*40});
       // Gulvvarme
-      if(a.gulvvarme==="Elektrisk"){items.push({n:`Elektrisk gulvvarme (${m2} m²)`,p:m2*650})}
-      else if(a.gulvvarme==="Vannbåren"){items.push({n:`Vannbåren gulvvarme (${m2} m²)`,p:m2*1250})}
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:isFliser?m2*40+1500:2500});
+      if(a.gulvvarme==="Elektrisk"){items.push({n:`Elektrisk gulvvarme (${m2} m²)`,p:m2*878})}
+      else if(a.gulvvarme==="Vannbåren"){items.push({n:`Vannbåren gulvvarme (${m2} m²)`,p:m2*1688})}
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:isFliser?m2*54+2025:3375});
       let gulvvarmeWork=[];
       if(a.gulvvarme==="Elektrisk"){gulvvarmeWork=[{n:"Legging gulvvarme (elektrisk)",h:m2*0.15}]}
       else if(a.gulvvarme==="Vannbåren"){gulvvarmeWork=[{n:"Legging gulvvarme (vannbåren)",h:m2*0.3}]}
@@ -444,24 +446,24 @@ const DB = {
       {id:"scope",q:"Omfang?",opts:["Kun fliser/overflater","Overflater + VVS","Totalrenovering"]},
       {id:"dusj",q:"Dusjløsning?",opts:["Dusjhjørne","Dusjvegg (walk-in)","Badekar","Badekar + dusj"]},
       {id:"dusjkvalitet",q:"Dusjkvalitet / prisklasse?",priceTiers:{
-        "Dusjhjørne":{budget:{label:"Standard dusjhjørne",price:3500},standard:{label:"Middels design",price:5000},premium:{label:"Premium design+finish",price:9500}},
-        "Dusjvegg (walk-in)":{budget:{label:"Standard walk-in",price:10000},standard:{label:"Middels klarglass",price:16000},premium:{label:"Premium skreddersydd",price:26000}},
-        "Badekar":{budget:{label:"Standard akryl",price:8000},standard:{label:"Middels design",price:16500},premium:{label:"Premium fritstående/støpejern",price:35000}},
-        "Badekar + dusj":{budget:{label:"Standard kombo",price:12000},standard:{label:"Middels",price:21500},premium:{label:"Premium design",price:42000}}
+        "Dusjhjørne":{budget:{label:"Standard dusjhjørne",price:4725},standard:{label:"Middels design",price:6750},premium:{label:"Premium design+finish",price:12825}},
+        "Dusjvegg (walk-in)":{budget:{label:"Standard walk-in",price:13500},standard:{label:"Middels klarglass",price:21600},premium:{label:"Premium skreddersydd",price:35100}},
+        "Badekar":{budget:{label:"Standard akryl",price:10800},standard:{label:"Middels design",price:22275},premium:{label:"Premium fritstående/støpejern",price:47250}},
+        "Badekar + dusj":{budget:{label:"Standard kombo",price:16200},standard:{label:"Middels",price:29025},premium:{label:"Premium design",price:56700}}
       },tierKey:"dusj",unit:"kr"},
       {id:"toalett",q:"Toalett?",opts:["Gulvstående (standard)","Vegghengt (+innbyggingscisterne)"]},
       {id:"toalettkvalitet",q:"Toalett kvalitetsnivå?",priceTiers:{
-        "Gulvstående (standard)":{budget:{label:"Standard modell",price:2000},standard:{label:"Middels",price:3000},premium:{label:"Premium design",price:6500}},
-        "Vegghengt (+innbyggingscisterne)":{budget:{label:"Standard vegghengt",price:7000},standard:{label:"Middels",price:10000},premium:{label:"Premium design+bidet",price:18000}}
+        "Gulvstående (standard)":{budget:{label:"Standard modell",price:2700},standard:{label:"Middels",price:4050},premium:{label:"Premium design",price:8775}},
+        "Vegghengt (+innbyggingscisterne)":{budget:{label:"Standard vegghengt",price:9450},standard:{label:"Middels",price:13500},premium:{label:"Premium design+bidet",price:24300}}
       },tierKey:"toalett",unit:"kr"},
       {id:"servant",q:"Servant?",opts:["Enkel","Dobbel","Møbel med underskap"]},
       {id:"servantkvalitet",q:"Servant kvalitetsnivå?",priceTiers:{
-        "Enkel":{budget:{label:"Standard servant",price:1200},standard:{label:"Middels",price:2000},premium:{label:"Premium design",price:4500}},
-        "Dobbel":{budget:{label:"Standard dobbel",price:3000},standard:{label:"Middels",price:5000},premium:{label:"Premium stone/design",price:10000}},
-        "Møbel med underskap":{budget:{label:"Standard baderomsinnredning",price:5500},standard:{label:"Middels",price:11500},premium:{label:"Premium skreddersydd",price:22000}}
+        "Enkel":{budget:{label:"Standard servant",price:1620},standard:{label:"Middels",price:2700},premium:{label:"Premium design",price:6075}},
+        "Dobbel":{budget:{label:"Standard dobbel",price:4050},standard:{label:"Middels",price:6750},premium:{label:"Premium stone/design",price:13500}},
+        "Møbel med underskap":{budget:{label:"Standard baderomsinnredning",price:7425},standard:{label:"Middels",price:15525},premium:{label:"Premium skreddersydd",price:29700}}
       },tierKey:"servant",unit:"kr"},
       {id:"fliskvalitet",q:"Fliskvalitet?",priceTiers:{
-        "_default":{budget:{label:"Budget",price:250},standard:{label:"Standard",price:450},premium:{label:"Premium",price:900}}
+        "_default":{budget:{label:"Budget",price:338},standard:{label:"Standard",price:608},premium:{label:"Premium",price:1215}}
       },tierKey:"scope",unit:"kr/m²"}
     ],
     calc(a){
@@ -477,24 +479,24 @@ const DB = {
       const flisPris=a.fliskvalitet||450;
       let items=[
         {n:`Fliser vegg+gulv (~${totalFlateM2} m²)`,p:Math.round(totalFlateM2*flisPris)},
-        {n:"Membran/tetting",p:Math.round((m2+veggM2)*350)},
-        {n:"Flislim/fugemasse/avretting",p:Math.round(totalFlateM2*150)},
-        {n:"Sluk (nytt)",p:isTotalReno?4500:0},
+        {n:"Membran/tetting",p:Math.round((m2+veggM2)*473)},
+        {n:"Flislim/fugemasse/avretting",p:Math.round(totalFlateM2*202)},
+        {n:"Sluk (nytt)",p:isTotalReno?6075:0},
       ];
       // Dusjløsning
-      const dusjPrisDefault={"Dusjhjørne":5000,"Dusjvegg (walk-in)":16000,"Badekar":16500,"Badekar + dusj":21500};
-      items.push({n:`Dusjløsning: ${a.dusj||"Dusjhjørne"}`,p:a.dusjkvalitet||dusjPrisDefault[a.dusj]||5000});
+      const dusjPrisDefault={"Dusjhjørne":6750,"Dusjvegg (walk-in)":21600,"Badekar":22275,"Badekar + dusj":29025};
+      items.push({n:`Dusjløsning: ${a.dusj||"Dusjhjørne"}`,p:a.dusjkvalitet||dusjPrisDefault[a.dusj]||6750});
       // Toalett
-      const toalettPrisDefault={"Gulvstående (standard)":3000,"Vegghengt (+innbyggingscisterne)":10000};
-      items.push({n:`Toalett: ${(a.toalett||"Gulvstående (standard)").split(" (")[0]}`,p:a.toalettkvalitet||toalettPrisDefault[a.toalett]||3000});
+      const toalettPrisDefault={"Gulvstående (standard)":4050,"Vegghengt (+innbyggingscisterne)":13500};
+      items.push({n:`Toalett: ${(a.toalett||"Gulvstående (standard)").split(" (")[0]}`,p:a.toalettkvalitet||toalettPrisDefault[a.toalett]||4050});
       // Servant
-      const servantPrisDefault={"Enkel":2000,"Dobbel":5000,"Møbel med underskap":11500};
-      items.push({n:`Servant: ${a.servant||"Enkel"}`,p:a.servantkvalitet||servantPrisDefault[a.servant]||2000});
-      if(hasVVS){items.push({n:"VVS-materialer (rør, blandebatteri, tilkoblinger)",p:Math.round(25000*mult)})}
-      if(isTotalReno){items.push({n:"Elektriker (varmekabler, lys, vifte)",p:29000})}
-      items.push({n:"Div. materialer (speil, skap, tilbehør)",p:Math.round(8000*mult)});
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:isTotalReno?5000:2500});
+      const servantPrisDefault={"Enkel":2700,"Dobbel":6750,"Møbel med underskap":15525};
+      items.push({n:`Servant: ${a.servant||"Enkel"}`,p:a.servantkvalitet||servantPrisDefault[a.servant]||2700});
+      if(hasVVS){items.push({n:"VVS-materialer (rør, blandebatteri, tilkoblinger)",p:Math.round(33750*mult)})}
+      if(isTotalReno){items.push({n:"Elektriker (varmekabler, lys, vifte)",p:39150})}
+      items.push({n:"Div. materialer (speil, skap, tilbehør)",p:Math.round(10800*mult)});
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:isTotalReno?6750:3375});
       let work=[
         {n:"Riving",h:Math.round(m2*3*mult)},
         {n:"Membran/tetting",h:Math.round(m2*2.5*mult)},
@@ -514,10 +516,10 @@ const DB = {
       {id:"area",q:"Omtrent hvor mange m²?",opts:["Under 30 m²","30–80 m²","80–150 m²","Over 150 m²"],midvals:{"Under 30 m²":20,"30–80 m²":55,"80–150 m²":115,"Over 150 m²":180}},
       {id:"type",q:"Inne eller ute?",opts:["Innvendig vegg","Innvendig tak","Utvendig fasade","Utvendig detaljer"]},
       {id:"matpris",q:"Hva koster malingen per m² (inkl. primer)?",priceTiers:{
-        "Innvendig vegg":{budget:{label:"Budget",price:35},standard:{label:"Standard",price:45},premium:{label:"Premium",price:70}},
-        "Innvendig tak":{budget:{label:"Budget",price:35},standard:{label:"Standard",price:45},premium:{label:"Premium",price:70}},
-        "Utvendig fasade":{budget:{label:"Budget",price:50},standard:{label:"Standard",price:65},premium:{label:"Premium",price:95}},
-        "Utvendig detaljer":{budget:{label:"Budget",price:50},standard:{label:"Standard",price:65},premium:{label:"Premium",price:95}}
+        "Innvendig vegg":{budget:{label:"Budget",price:47},standard:{label:"Standard",price:61},premium:{label:"Premium",price:94}},
+        "Innvendig tak":{budget:{label:"Budget",price:47},standard:{label:"Standard",price:61},premium:{label:"Premium",price:94}},
+        "Utvendig fasade":{budget:{label:"Budget",price:68},standard:{label:"Standard",price:88},premium:{label:"Premium",price:128}},
+        "Utvendig detaljer":{budget:{label:"Budget",price:68},standard:{label:"Standard",price:88},premium:{label:"Premium",price:128}}
       },tierKey:"type",unit:"kr/m²"},
       {id:"tilstand",q:"Tilstand på vegger/overflate?",opts:["God (lite prep)","Slitt (noe sparkling)","Dårlig (mye prep)"]},
       {id:"strok",q:"Antall strøk?",opts:["2 strøk (standard)","3 strøk (mørk→lys)"]}
@@ -525,17 +527,17 @@ const DB = {
     calc(a){
       const areas={"Under 30 m²":20,"30–80 m²":55,"80–150 m²":115,"Over 150 m²":180};
       const m2=a.area_m2||areas[a.area]||55;const ute=a.type.includes("Utvendig");
-      const mp=a.matpris||(ute?65:45);
+      const mp=a.matpris||(ute?88:61);
       const arbeidMult={"God (lite prep)":1,"Slitt (noe sparkling)":1.3,"Dårlig (mye prep)":1.6}[a.tilstand]||1;
       const treStrok=a.strok==="3 strøk (mørk→lys)";
       const matMult=treStrok?1.4:1;
       const strokArbeidMult=treStrok?1.3:1;
       return{title:`Maling ${a.type.toLowerCase()} — ~${m2} m²`,items:[
         {n:`Maling ${ute?"ute":"inne"} (${m2} m²)`,p:Math.round(m2*mp*matMult)},
-        {n:ute?"Skraping/vaskemiddel/slipepapir":"Sparkelmasse/primer",p:m2*(ute?35:25)},
-        {n:"Tape/tildekking",p:m2*10},
-        {n:"Rigg/transport",p:5200},
-        {n:"Avfallshåndtering",p:2500}
+        {n:ute?"Skraping/vaskemiddel/slipepapir":"Sparkelmasse/primer",p:m2*(ute?47:34)},
+        {n:"Tape/tildekking",p:m2*14},
+        {n:"Rigg/transport",p:7020},
+        {n:"Avfallshåndtering",p:3375}
       ],work:[
         {n:"Vasking/prep",h:Math.round(m2*0.05*arbeidMult*10)/10},
         {n:ute?"Skraping/vasking/sliping":"Sparkling/sliping",h:Math.round(m2*(ute?0.1:0.08)*arbeidMult*10)/10},
@@ -552,7 +554,7 @@ const DB = {
       {id:"type",q:"Hvor?",opts:["Loft/himling","Yttervegg","Gulv/kjeller","Krypkjeller"]},
       {id:"tykkelse",q:"Tykkelse isolasjon?",opts:["100mm","200mm","300mm","400mm"]},
       {id:"isotype",q:"Isolasjonstype (materialvalg)?",priceTiers:{
-        "_default":{budget:{label:"Standard mineralull",price:0},standard:{label:"Trefiber (lyd/miljø)",price:35},premium:{label:"XPS/PIR (tett/slim)",price:90}}
+        "_default":{budget:{label:"Standard mineralull",price:0},standard:{label:"Trefiber (lyd/miljø)",price:47},premium:{label:"XPS/PIR (tett/slim)",price:122}}
       },tierKey:"_default",unit:"kr/m² tillegg"}
     ],
     calc(a){
@@ -569,13 +571,13 @@ const DB = {
       const timeFaktor=isKryp?2:1;
       let items=[
         {n:`Isolasjon ${iso.mm}mm (${m2} m²)`,p:m2*iso.pris},
-        {n:"Dampsperre",p:m2*45},
-        {n:"Lekter/innfesting",p:m2*55}
+        {n:"Dampsperre",p:m2*61},
+        {n:"Lekter/innfesting",p:m2*74}
       ];
-      if(isYttervegg){items.push({n:"Vindsperre",p:m2*45})}
-      if(isKryp){items.push({n:"Grunnmursplast/radonmembran",p:m2*60})}
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      if(isYttervegg){items.push({n:"Vindsperre",p:m2*61})}
+      if(isKryp){items.push({n:"Grunnmursplast/radonmembran",p:m2*81})}
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`Isolering ${a.type.toLowerCase()} — ${iso.mm}mm, ~${m2} m²`,items,work:[
         {n:"Riving/prep",h:m2*0.08*timeFaktor},
         {n:"Montering isolasjon",h:m2*0.2*timeFaktor},
@@ -589,7 +591,7 @@ const DB = {
     questions: [
       {id:"gipstype",q:"Hva skal gipses?",opts:["Himling","Vegg","Himling + vegg"]},
       {id:"gipskvalitet",q:"Gipstype / kvalitetsnivå?",priceTiers:{
-        "_default":{budget:{label:"Standard gips 12.5mm",price:65},standard:{label:"Brannhemmende gips",price:90},premium:{label:"Våtromsgips/Aquapanel",price:130}}
+        "_default":{budget:{label:"Standard gips 12.5mm",price:88},standard:{label:"Brannhemmende gips",price:122},premium:{label:"Våtromsgips/Aquapanel",price:176}}
       },tierKey:"_default",unit:"kr/m²"},
       {id:"area",q:"Hvor mange m²?",opts:["Under 20 m²","20–50 m²","50–100 m²","Over 100 m²"],midvals:{"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120}},
       {id:"lag",q:"Enkel eller dobbel gips?",opts:["Enkel (standard)","Dobbel (brann/lyd)"]},
@@ -610,20 +612,20 @@ const DB = {
       const gipsPris=a.gipskvalitet||65;
       let items=[
         {n:`Gipsplater 13mm ${dobbel?"dobbel":"enkel"} (${m2} m²)`,p:m2*(dobbel?gipsPris*2:gipsPris)},
-        {n:`Stålprofiler/lekter (${m2} m²)`,p:m2*70},
-        {n:"Skruer/festemateriell",p:m2*20}
+        {n:`Stålprofiler/lekter (${m2} m²)`,p:m2*94},
+        {n:"Skruer/festemateriell",p:m2*27}
       ];
       let work=[
         {n:"Lekting/profiler",h:m2*0.2},
         {n:`Gipsmontering (${dobbel?"dobbel":"enkel"})`,h:m2*(dobbel?0.4:0.25)}
       ];
 
-      if(riving){items.push({n:"Riving gammel himling/vegg",p:m2*40});work.unshift({n:"Riving",h:m2*0.15})}
-      if(isolasjon){items.push({n:`Isolasjon (${a.isolasjon.includes("lyd")?"lyd":"varme"})`,p:m2*80});work.push({n:"Isolasjon",h:m2*0.1})}
-      if(sparkling){items.push({n:"Sparklingsmasse + tape",p:m2*45});items.push({n:"Maling",p:m2*30});work.push({n:"Sparkling (3 strøk)",h:m2*0.3});work.push({n:"Maling",h:m2*0.1})}
-      if(høytTak){items.push({n:"Stillas (høy himling)",p:Math.max(5000,m2*80)});work.push({n:"Stillas opp/ned",h:2})}
-      items.push({n:"Rigg/transport",p:5200});
-      if(riving)items.push({n:"Avfallshåndtering",p:2500});
+      if(riving){items.push({n:"Riving gammel himling/vegg",p:m2*54});work.unshift({n:"Riving",h:m2*0.15})}
+      if(isolasjon){items.push({n:`Isolasjon (${a.isolasjon.includes("lyd")?"lyd":"varme"})`,p:m2*108});work.push({n:"Isolasjon",h:m2*0.1})}
+      if(sparkling){items.push({n:"Sparklingsmasse + tape",p:m2*61});items.push({n:"Maling",p:m2*40});work.push({n:"Sparkling (3 strøk)",h:m2*0.3});work.push({n:"Maling",h:m2*0.1})}
+      if(høytTak){items.push({n:"Stillas (høy himling)",p:Math.max(6750,m2*108)});work.push({n:"Stillas opp/ned",h:2})}
+      items.push({n:"Rigg/transport",p:7020});
+      if(riving)items.push({n:"Avfallshåndtering",p:3375});
 
       let title=`Gipsarbeid — ${a.gipstype}, ~${m2} m²`;
       if(dobbel)title+=" (dobbel)";
@@ -639,11 +641,11 @@ const DB = {
       {id:"area",q:"Takflate (m²)?",opts:["Under 50 m²","50–100 m²","100–200 m²","Over 200 m²"],midvals:{"Under 50 m²":35,"50–100 m²":75,"100–200 m²":150,"Over 200 m²":250}},
       {id:"type",q:"Type tekking?",opts:["Takstein (betong)","Takstein (tegl)","Stålplater","Shingel","Takpapp/membran"]},
       {id:"matpris",q:"Kvalitetsnivå på materialer?",priceTiers:{
-        "Takstein (betong)":{budget:{label:"Budget",price:300},standard:{label:"Standard",price:375},premium:{label:"Premium",price:450}},
-        "Takstein (tegl)":{budget:{label:"Budget",price:450},standard:{label:"Standard",price:575},premium:{label:"Premium",price:700}},
-        "Stålplater":{budget:{label:"Budget",price:350},standard:{label:"Standard",price:425},premium:{label:"Premium",price:500}},
-        "Shingel":{budget:{label:"Budget",price:200},standard:{label:"Standard",price:275},premium:{label:"Premium",price:350}},
-        "Takpapp/membran":{budget:{label:"Budget",price:200},standard:{label:"Standard",price:275},premium:{label:"Premium",price:350}}
+        "Takstein (betong)":{budget:{label:"Budget",price:405},standard:{label:"Standard",price:506},premium:{label:"Premium",price:608}},
+        "Takstein (tegl)":{budget:{label:"Budget",price:608},standard:{label:"Standard",price:776},premium:{label:"Premium",price:945}},
+        "Stålplater":{budget:{label:"Budget",price:473},standard:{label:"Standard",price:574},premium:{label:"Premium",price:675}},
+        "Shingel":{budget:{label:"Budget",price:270},standard:{label:"Standard",price:371},premium:{label:"Premium",price:473}},
+        "Takpapp/membran":{budget:{label:"Budget",price:270},standard:{label:"Standard",price:371},premium:{label:"Premium",price:473}}
       },tierKey:"type",unit:"kr/m²"},
       {id:"snofangere",q:"Snøfangere? (anbefalt i Nord-Norge)",opts:["Ja","Nei"]},
       {id:"snofangerLengde",q:"Lengde snøfangere (løpemeter)?",opts:["Under 10 lm","10–20 lm","20–30 lm","Over 30 lm"],midvals:{"Under 10 lm":8,"10–20 lm":15,"20–30 lm":25,"Over 30 lm":40},condition:(a)=>a.snofangere==="Ja"},
@@ -651,26 +653,26 @@ const DB = {
     ],
     calc(a){
       const areas={"Under 50 m²":35,"50–100 m²":75,"100–200 m²":150,"Over 200 m²":250};
-      const defPris={"Takstein (betong)":375,"Takstein (tegl)":575,"Stålplater":425,"Shingel":275,"Takpapp/membran":275};
+      const defPris={"Takstein (betong)":506,"Takstein (tegl)":776,"Stålplater":574,"Shingel":371,"Takpapp/membran":371};
       const m2=a.area_m2||areas[a.area]||75;const mp=a.matpris||defPris[a.type]||425;
       let items=[
         {n:`${a.type} (${m2} m²)`,p:m2*mp},
-        {n:"Undertak/lekter",p:m2*160},
-        {n:"Beslag/takrenner",p:5800+m2*30},
-        {n:"Pipebeslag/gjennomføringer",p:5800},
-        {n:"Container/avfallshåndtering",p:m2*60+2000},
-        {n:"Rigg/transport",p:5200}
+        {n:"Undertak/lekter",p:m2*216},
+        {n:"Beslag/takrenner",p:7830+m2*40},
+        {n:"Pipebeslag/gjennomføringer",p:7830},
+        {n:"Container/avfallshåndtering",p:m2*81+2700},
+        {n:"Rigg/transport",p:7020}
       ];
       let work=[{n:"Riving gammel tekking",h:m2*0.5},{n:"Undertak/lekting",h:m2*0.3},{n:"Legging ny tekking",h:m2*0.4},{n:"Beslag/finish",h:m2*0.2}];
       // Snøfangere
       if(a.snofangere==="Ja"){
         const sfLm=a.snofangerLengde_m2||{"Under 10 lm":8,"10–20 lm":15,"20–30 lm":25,"Over 30 lm":40}[a.snofangerLengde]||15;
-        items.push({n:`Snøfangere (~${sfLm} lm)`,p:sfLm*300});
+        items.push({n:`Snøfangere (~${sfLm} lm)`,p:sfLm*405});
         work.push({n:"Montering snøfangere",h:sfLm*0.15});
       }
       // Bytte undertak
       if(a.undertak==="Ja, byttes"){
-        items.push({n:`Nytt undertak (${m2} m²)`,p:m2*200});
+        items.push({n:`Nytt undertak (${m2} m²)`,p:m2*270});
         work.push({n:"Bytte undertak",h:m2*0.3});
       }
       let title=`Tak — ${a.type}, ~${m2} m²`;
@@ -685,13 +687,13 @@ const DB = {
       {id:"area",q:"Areal på kjøkkenet?",opts:["Under 8 m²","8–12 m²","12–18 m²","Over 18 m²"],midvals:{"Under 8 m²":6,"8–12 m²":10,"12–18 m²":15,"Over 18 m²":22}},
       {id:"riving",q:"Rive gammelt kjøkken?",opts:["Ja","Nei"]},
       {id:"innredning",q:"Kjøkkeninnredning — kvalitetsnivå?",priceTiers:{
-        "_default":{budget:{label:"Budget",price:30000},standard:{label:"Standard",price:60000},premium:{label:"Premium",price:120000}}
+        "_default":{budget:{label:"Budget",price:40500},standard:{label:"Standard",price:81000},premium:{label:"Premium",price:162000}}
       },tierKey:"type",unit:"kr"},
       {id:"benkeplate",q:"Type benkeplate?",opts:["Laminat","Stein (granitt/kompositt)","Heltre"]},
       {id:"benkekvalitet",q:"Benkeplate kvalitetsnivå?",priceTiers:{
-        "Laminat":{budget:{label:"Standard laminat",price:3500},standard:{label:"Middels laminat",price:5500},premium:{label:"Premium HPL/compact",price:9000}},
-        "Stein (granitt/kompositt)":{budget:{label:"Standard kompositt",price:15000},standard:{label:"Granitt/kvarts",price:22500},premium:{label:"Premium naturstein/marmor",price:35000}},
-        "Heltre":{budget:{label:"Standard furu/eik",price:7000},standard:{label:"Middels eik/valnøtt",price:11500},premium:{label:"Premium eksotisk hardtre",price:18000}}
+        "Laminat":{budget:{label:"Standard laminat",price:4725},standard:{label:"Middels laminat",price:7425},premium:{label:"Premium HPL/compact",price:12150}},
+        "Stein (granitt/kompositt)":{budget:{label:"Standard kompositt",price:20250},standard:{label:"Granitt/kvarts",price:30375},premium:{label:"Premium naturstein/marmor",price:47250}},
+        "Heltre":{budget:{label:"Standard furu/eik",price:9450},standard:{label:"Middels eik/valnøtt",price:15525},premium:{label:"Premium eksotisk hardtre",price:24300}}
       },tierKey:"benkeplate",unit:"kr"},
       {id:"fliser",q:"Fliser over benk (backsplash)?",opts:["Ja","Nei"]},
       {id:"vvs",q:"Flytte vann/avløp?",opts:["Nei","Ja, litt","Ja, mye"]},
@@ -701,26 +703,26 @@ const DB = {
       const areas={"Under 8 m²":6,"8–12 m²":10,"12–18 m²":15,"Over 18 m²":22};
       const m2=a.area_m2||areas[a.area]||10;
       const innredning=a.innredning||60000;
-      const benkePrisDefault={"Laminat":4500,"Stein (granitt/kompositt)":22500,"Heltre":11500};
-      const benkePrisValgt=a.benkekvalitet||benkePrisDefault[a.benkeplate]||4500;
+      const benkePrisDefault={"Laminat":6075,"Stein (granitt/kompositt)":30375,"Heltre":15525};
+      const benkePrisValgt=a.benkekvalitet||benkePrisDefault[a.benkeplate]||6075;
       let items=[
         {n:"Kjøkkeninnredning",p:innredning},
         {n:`Benkeplate (${a.benkeplate})`,p:benkePrisValgt}
       ];
       // Kjøkkenmontering: 50-70 timer for et standard kjøkken
       const montHours=m2<=8?48:m2<=12?58:m2<=18?72:90;
-      items.push({n:"Belysning under overskap + stikkontakter",p:4800});
+      items.push({n:"Belysning under overskap + stikkontakter",p:6480});
       let workSteps=[{n:"Montering kjøkkeninnredning",h:montHours}];
 
-      if(a.riving==="Ja"){items.push({n:"Rivematerialer/container",p:3500});workSteps.unshift({n:"Riving gammelt kjøkken",h:12})}
-      if(a.fliser==="Ja"){items.push({n:`Fliser backsplash (~${Math.round(m2*0.4)} m²)`,p:Math.round(m2*0.4*500)});workSteps.push({n:"Flislegging",h:Math.round(m2*0.4*500)/RATE})}
-      if(a.vvs==="Ja, litt"){items.push({n:"VVS-arbeid (mindre endring)",p:5800});workSteps.push({n:"VVS",h:5000/RATE})}
-      else if(a.vvs==="Ja, mye"){items.push({n:"VVS-arbeid (større omlegging)",p:17000});workSteps.push({n:"VVS",h:15000/RATE})}
-      if(a.elektro==="Delvis"){items.push({n:"Elektro (delvis)",p:5800});workSteps.push({n:"Elektro",h:5000/RATE})}
-      else if(a.elektro==="Ja, nytt"){items.push({n:"Elektro (nytt opplegg)",p:17000});workSteps.push({n:"Elektro",h:15000/RATE})}
+      if(a.riving==="Ja"){items.push({n:"Rivematerialer/container",p:4725});workSteps.unshift({n:"Riving gammelt kjøkken",h:12})}
+      if(a.fliser==="Ja"){items.push({n:`Fliser backsplash (~${Math.round(m2*0.4)} m²)`,p:Math.round(m2*0.4*675)});workSteps.push({n:"Flislegging",h:Math.round(m2*0.4*500)/RATE})}
+      if(a.vvs==="Ja, litt"){items.push({n:"VVS-arbeid (mindre endring)",p:7830});workSteps.push({n:"VVS",h:5000/RATE})}
+      else if(a.vvs==="Ja, mye"){items.push({n:"VVS-arbeid (større omlegging)",p:22950});workSteps.push({n:"VVS",h:15000/RATE})}
+      if(a.elektro==="Delvis"){items.push({n:"Elektro (delvis)",p:7830});workSteps.push({n:"Elektro",h:5000/RATE})}
+      else if(a.elektro==="Ja, nytt"){items.push({n:"Elektro (nytt opplegg)",p:22950});workSteps.push({n:"Elektro",h:15000/RATE})}
 
-      items.push({n:"Rigg/transport",p:5200});
-      if(a.riving==="Ja")items.push({n:"Avfallshåndtering",p:5800});
+      items.push({n:"Rigg/transport",p:7020});
+      if(a.riving==="Ja")items.push({n:"Avfallshåndtering",p:7830});
       const isNew=a.type==="Nytt kjøkken";
       let title=`Kjøkken — ${isNew?"nytt":"oppgradering"}, ~${m2} m²`;
       return{title,items,work:workSteps}
@@ -733,9 +735,9 @@ const DB = {
       {id:"type",q:"Innvendig eller utvendig trapp?",opts:["Innvendig","Utvendig"]},
       {id:"material",q:"Materiale?",opts:["Tre","Betong","Stål+tre"]},
       {id:"materialkvalitet",q:"Materialkvalitet?",priceTiers:{
-        "Tre":{budget:{label:"Standard gran/furu",price:0},standard:{label:"Middels eik",price:15000},premium:{label:"Premium hardtre/natur",price:30000}},
-        "Betong":{budget:{label:"Standard rå betong",price:0},standard:{label:"Pusset betong",price:8000},premium:{label:"Polert betong + stål",price:18000}},
-        "Stål+tre":{budget:{label:"Standard stål+furu",price:0},standard:{label:"Middels stål+eik",price:12000},premium:{label:"Premium rustfritt+hardtre",price:25000}}
+        "Tre":{budget:{label:"Standard gran/furu",price:0},standard:{label:"Middels eik",price:20250},premium:{label:"Premium hardtre/natur",price:40500}},
+        "Betong":{budget:{label:"Standard rå betong",price:0},standard:{label:"Pusset betong",price:10800},premium:{label:"Polert betong + stål",price:24300}},
+        "Stål+tre":{budget:{label:"Standard stål+furu",price:0},standard:{label:"Middels stål+eik",price:16200},premium:{label:"Premium rustfritt+hardtre",price:33750}}
       },tierKey:"material",unit:"kr tillegg"},
       {id:"etasjer",q:"Antall etasjer / trappeform?",opts:["1 etasje (rett)","1 etasje (sving)","2 etasjer"]},
       {id:"rekkverk",q:"Type rekkverk?",opts:["Standard tre","Glass","Stål"]},
@@ -743,9 +745,9 @@ const DB = {
     ],
     calc(a){
       const basePrices={
-        "Tre":{"1 etasje (rett)":{low:25000,high:40000},"1 etasje (sving)":{low:40000,high:70000},"2 etasjer":{low:65000,high:110000}},
-        "Betong":{"1 etasje (rett)":{low:50000,high:90000},"1 etasje (sving)":{low:65000,high:110000},"2 etasjer":{low:90000,high:160000}},
-        "Stål+tre":{"1 etasje (rett)":{low:60000,high:100000},"1 etasje (sving)":{low:75000,high:120000},"2 etasjer":{low:110000,high:180000}}
+        "Tre":{"1 etasje (rett)":{"low":33750,"high":54000},"1 etasje (sving)":{"low":54000,"high":94500},"2 etasjer":{"low":87750,"high":148500}},
+        "Betong":{"1 etasje (rett)":{"low":67500,"high":121500},"1 etasje (sving)":{"low":87750,"high":148500},"2 etasjer":{"low":121500,"high":216000}},
+        "Stål+tre":{"1 etasje (rett)":{"low":81000,"high":135000},"1 etasje (sving)":{"low":101250,"high":162000},"2 etasjer":{"low":148500,"high":243000}}
       };
       const bp=(basePrices[a.material]||basePrices["Tre"])[a.etasjer]||{low:40000,high:70000};
       const kvalTillegg=a.materialkvalitet||0;
@@ -756,13 +758,13 @@ const DB = {
       let items=[{n:`Trapp ${a.material} (${a.etasjer})`,p:mid}];
       let workSteps=[{n:"Montering trapp",h:22500/RATE}];
 
-      if(a.rekkverk==="Glass"){items.push({n:`Rekkverk glass (~${rekkLm} lm)`,p:rekkLm*5500});workSteps.push({n:"Montering glassrekkverk",h:8})}
-      else if(a.rekkverk==="Stål"){items.push({n:`Rekkverk stål (~${rekkLm} lm)`,p:rekkLm*3800});workSteps.push({n:"Montering stålrekkverk",h:6})}
-      else{items.push({n:`Rekkverk tre (~${rekkLm} lm)`,p:rekkLm*1800})}
+      if(a.rekkverk==="Glass"){items.push({n:`Rekkverk glass (~${rekkLm} lm)`,p:rekkLm*7425});workSteps.push({n:"Montering glassrekkverk",h:8})}
+      else if(a.rekkverk==="Stål"){items.push({n:`Rekkverk stål (~${rekkLm} lm)`,p:rekkLm*5130});workSteps.push({n:"Montering stålrekkverk",h:6})}
+      else{items.push({n:`Rekkverk tre (~${rekkLm} lm)`,p:rekkLm*2430})}
 
-      if(a.riving==="Ja"){items.push({n:"Riving gammel trapp",p:4500});workSteps.unshift({n:"Riving gammel trapp",h:7500/RATE})}
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:a.riving==="Ja"?5000:2500});
+      if(a.riving==="Ja"){items.push({n:"Riving gammel trapp",p:6075});workSteps.unshift({n:"Riving gammel trapp",h:7500/RATE})}
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:a.riving==="Ja"?6750:3375});
       return{title:`Trapp — ${a.material} ${a.etasjer.toLowerCase()}, ${a.type.toLowerCase()}`,items,work:workSteps}
     }
   },
@@ -779,7 +781,7 @@ const DB = {
       {id:"graving",q:"Trenger graving/grunnarbeid?",opts:["Ja","Nei"],condition:(a)=>a.type!=="Avretting/Selvnivellerende"},
       {id:"markisolasjon",q:"Markisolasjon (XPS)?",opts:["Nei","50mm","100mm"],condition:(a)=>a.type==="Betongplate (gulv/grunn)"||a.type==="Ringmur/Grunnmur"},
       {id:"betongfinish",q:"Overflate-finish på betongen?",priceTiers:{
-        "_default":{budget:{label:"Rå betong (standard)",price:0},standard:{label:"Pusset betong (+60 kr/m²)",price:60},premium:{label:"Polert betong (+180 kr/m²)",price:180}}
+        "_default":{budget:{label:"Rå betong (standard)",price:0},standard:{label:"Pusset betong (+60 kr/m²)",price:81},premium:{label:"Polert betong (+180 kr/m²)",price:243}}
       },tierKey:"_default",unit:"kr/m² tillegg",condition:(a)=>a.type==="Betongplate (gulv/grunn)"||a.type==="Avretting/Selvnivellerende"}
     ],
     calc(a){
@@ -796,69 +798,69 @@ const DB = {
       if(isPlate){
         const areas={"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120};
         const m2=a.area_m2||areas[a.area]||35;
-        const tykkPris={"10cm":800,"15cm":1150,"20cm":1500};
+        const tykkPris={"10cm":1080,"15cm":1552,"20cm":2025};
         const ppm2=tykkPris[a.tykkelse]||1150;
         const finishTillegg=a.betongfinish||0;
         items.push({n:`Betongplate ${a.tykkelse||"15cm"} (${m2} m²)`,p:m2*(ppm2+finishTillegg)});
-        items.push({n:"Forskaling",p:m2*156});
-        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:m2*200})}
+        items.push({n:"Forskaling",p:m2*211});
+        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:m2*270})}
         if(finishTillegg>0)workSteps.push({n:"Overflatebehandling betong",h:m2*0.1});
         workSteps.push({n:"Forskaling + støping",h:m2*0.5});
       } else if(isRingmur){
         const lengder={"Under 10 lm":8,"10–20 lm":15,"20–40 lm":30,"Over 40 lm":50};
         const lm=a.lengde_m2||lengder[a.lengde]||15;
-        const pplm=4000;
+        const pplm=5400;
         items.push({n:`${a.type} (${lm} lm)`,p:lm*pplm});
-        items.push({n:"Forskaling",p:lm*500});
-        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:lm*300})}
+        items.push({n:"Forskaling",p:lm*675});
+        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:lm*405})}
         workSteps.push({n:"Forskaling + støping",h:lm*1.5});
       } else if(isTrapp){
-        items.push({n:"Betongtrapp",p:80000});
-        items.push({n:"Forskaling",p:8000});
-        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:5800})}
+        items.push({n:"Betongtrapp",p:108000});
+        items.push({n:"Forskaling",p:10800});
+        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:7830})}
         workSteps.push({n:"Forskaling + støping trapp",h:40});
       } else if(isVegg){
         const areas={"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120};
         const m2=a.area_m2||areas[a.area]||35;
         // 2500-4000 kr/m² → midpoint 3250
-        items.push({n:`Betongvegg (${m2} m²)`,p:m2*3250});
-        items.push({n:"Forskaling (vegg)",p:m2*400});
-        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:m2*250})}
+        items.push({n:`Betongvegg (${m2} m²)`,p:m2*4388});
+        items.push({n:"Forskaling (vegg)",p:m2*540});
+        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:m2*338})}
         workSteps.push({n:"Forskaling + armering + støping vegg",h:m2*0.8});
       } else if(isPunkt){
         const antall=parseInt(a.antall)||6;
         // 3000-5000 kr per punkt → midpoint 4000
-        items.push({n:`Punktfundament (${antall} stk)`,p:antall*4000});
-        items.push({n:"Forskaling/rør",p:antall*500});
+        items.push({n:`Punktfundament (${antall} stk)`,p:antall*5400});
+        items.push({n:"Forskaling/rør",p:antall*675});
         workSteps.push({n:`Graving + støping ${antall} punkter`,h:antall*2});
       } else if(isStripe){
         const lengder={"Under 10 lm":8,"10–20 lm":15,"20–40 lm":30,"Over 40 lm":50};
         const lm=a.lengde_m2||lengder[a.lengde]||15;
         // 2000-3500 kr/lm → midpoint 2750
-        items.push({n:`Stripefundament (${lm} lm)`,p:lm*2750});
-        items.push({n:"Forskaling",p:lm*350});
-        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:lm*200})}
+        items.push({n:`Stripefundament (${lm} lm)`,p:lm*3713});
+        items.push({n:"Forskaling",p:lm*473});
+        if(a.armering==="Ekstra armering"){items.push({n:"Ekstra armering",p:lm*270})}
         workSteps.push({n:"Forskaling + støping stripefundament",h:lm*1.2});
       } else if(isAvretting){
         const areas={"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120};
         const m2=a.area_m2||areas[a.area]||35;
         // 300-500 kr/m² → midpoint 400
-        items.push({n:`Avretting/selvnivellerende (${m2} m²)`,p:m2*400});
-        items.push({n:"Primer",p:m2*30});
+        items.push({n:`Avretting/selvnivellerende (${m2} m²)`,p:m2*540});
+        items.push({n:"Primer",p:m2*40});
         workSteps.push({n:"Prep + avretting",h:m2*0.15});
       }
 
-      if(a.graving==="Ja"){items.push({n:"Graving/grunnarbeid",p:14500});workSteps.unshift({n:"Graving",h:12500/RATE})}
+      if(a.graving==="Ja"){items.push({n:"Graving/grunnarbeid",p:19575});workSteps.unshift({n:"Graving",h:12500/RATE})}
       // Markisolasjon
       if(a.markisolasjon==="50mm"){
         const isoM2=(isPlate?(a.area_m2||{"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120}[a.area]||35):(isRingmur?(a.lengde_m2||{"Under 10 lm":8,"10–20 lm":15,"20–40 lm":30,"Over 40 lm":50}[a.lengde]||15)*0.8:0));
-        if(isoM2>0){items.push({n:`Markisolasjon XPS 50mm (~${Math.round(isoM2)} m²)`,p:Math.round(isoM2*120)});workSteps.push({n:"Legging markisolasjon",h:isoM2*0.1})}
+        if(isoM2>0){items.push({n:`Markisolasjon XPS 50mm (~${Math.round(isoM2)} m²)`,p:Math.round(isoM2*162)});workSteps.push({n:"Legging markisolasjon",h:isoM2*0.1})}
       } else if(a.markisolasjon==="100mm"){
         const isoM2=(isPlate?(a.area_m2||{"Under 20 m²":15,"20–50 m²":35,"50–100 m²":75,"Over 100 m²":120}[a.area]||35):(isRingmur?(a.lengde_m2||{"Under 10 lm":8,"10–20 lm":15,"20–40 lm":30,"Over 40 lm":50}[a.lengde]||15)*0.8:0));
-        if(isoM2>0){items.push({n:`Markisolasjon XPS 100mm (~${Math.round(isoM2)} m²)`,p:Math.round(isoM2*200)});workSteps.push({n:"Legging markisolasjon",h:isoM2*0.12})}
+        if(isoM2>0){items.push({n:`Markisolasjon XPS 100mm (~${Math.round(isoM2)} m²)`,p:Math.round(isoM2*270)});workSteps.push({n:"Legging markisolasjon",h:isoM2*0.12})}
       }
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`Betong — ${a.type}`,items,work:workSteps}
     }
   },
@@ -870,36 +872,36 @@ const DB = {
       {id:"area",q:"Omtrentlig areal (m²)?",opts:["Under 10 m²","10–30 m²","30–60 m²","Over 60 m²"],midvals:{"Under 10 m²":7,"10–30 m²":20,"30–60 m²":45,"Over 60 m²":80},condition:(a)=>["Flislegging (baderom, kjøkken, gang)","Murvegg (inne/ute)","Belegningsstein","Naturstein","Fugereparasjon"].includes(a.type)},
       {id:"material",q:"Flisformat/materiale?",opts:["Standardflis (30x30–60x60)","Storformat (60x120+)","Mosaikk","Naturstein"],condition:(a)=>a.type==="Flislegging (baderom, kjøkken, gang)"},
       {id:"fliskvalitet",q:"Fliskvalitet?",priceTiers:{
-        "Standardflis (30x30–60x60)":{budget:{label:"Standard keramikk",price:250},standard:{label:"Middels porselens",price:350},premium:{label:"Premium designflis",price:600}},
-        "Storformat (60x120+)":{budget:{label:"Standard storformat",price:400},standard:{label:"Middels",price:550},premium:{label:"Premium import",price:900}},
-        "Mosaikk":{budget:{label:"Standard",price:400},standard:{label:"Middels glass",price:600},premium:{label:"Premium naturstein",price:900}},
-        "Naturstein":{budget:{label:"Standard slate",price:500},standard:{label:"Middels marmor",price:750},premium:{label:"Premium travertin/onyx",price:1100}}
+        "Standardflis (30x30–60x60)":{budget:{label:"Standard keramikk",price:338},standard:{label:"Middels porselens",price:473},premium:{label:"Premium designflis",price:810}},
+        "Storformat (60x120+)":{budget:{label:"Standard storformat",price:540},standard:{label:"Middels",price:742},premium:{label:"Premium import",price:1215}},
+        "Mosaikk":{budget:{label:"Standard",price:540},standard:{label:"Middels glass",price:810},premium:{label:"Premium naturstein",price:1215}},
+        "Naturstein":{budget:{label:"Standard slate",price:675},standard:{label:"Middels marmor",price:1013},premium:{label:"Premium travertin/onyx",price:1485}}
       },tierKey:"material",unit:"kr/m²",condition:(a)=>a.type==="Flislegging (baderom, kjøkken, gang)"},
       {id:"steinkvalitet",q:"Steintype / kvalitet?",priceTiers:{
-        "_default":{budget:{label:"Standard betongstein",price:450},standard:{label:"Middels sandstein/tegl",price:650},premium:{label:"Premium naturstein/granitt",price:950}}
+        "_default":{budget:{label:"Standard betongstein",price:608},standard:{label:"Middels sandstein/tegl",price:878},premium:{label:"Premium naturstein/granitt",price:1282}}
       },tierKey:"_default",unit:"kr/m²",condition:(a)=>a.type==="Murvegg (inne/ute)"},
       {id:"betonkvalitet",q:"Belegningsstein type / finish?",priceTiers:{
-        "_default":{budget:{label:"Standard betong rå",price:180},standard:{label:"Middels kompositt",price:280},premium:{label:"Premium granitt/naturstein",price:480}}
+        "_default":{budget:{label:"Standard betong rå",price:243},standard:{label:"Middels kompositt",price:378},premium:{label:"Premium granitt/naturstein",price:648}}
       },tierKey:"_default",unit:"kr/m² (kun materiell)",condition:(a)=>a.type==="Belegningsstein"},
       {id:"natursteinkvalitet",q:"Naturstein kvalitet?",priceTiers:{
-        "_default":{budget:{label:"Standard lokalt fjell",price:650},standard:{label:"Middels skifer",price:900},premium:{label:"Premium importert granitt",price:1300}}
+        "_default":{budget:{label:"Standard lokalt fjell",price:878},standard:{label:"Middels skifer",price:1215},premium:{label:"Premium importert granitt",price:1755}}
       },tierKey:"_default",unit:"kr/m²",condition:(a)=>a.type==="Naturstein"}
     ],
     calc(a){
       const items=[];const workSteps=[];
       const area=a.area_m2||{"Under 10 m²":7,"10–30 m²":20,"30–60 m²":45,"Over 60 m²":80}[a.area]||20;
       if(a.type==="Flislegging (baderom, kjøkken, gang)"){
-        const ppMatDefault={"Standardflis (30x30–60x60)":350,"Storformat (60x120+)":550,"Mosaikk":600,"Naturstein":750};
-        const ppMat=a.fliskvalitet||ppMatDefault[a.material]||400;
-        const ppWork={"Standardflis (30x30–60x60)":450,"Storformat (60x120+)":550,"Mosaikk":650,"Naturstein":700}[a.material]||500;
+        const ppMatDefault={"Standardflis (30x30–60x60)":473,"Storformat (60x120+)":742,"Mosaikk":810,"Naturstein":1013};
+        const ppMat=a.fliskvalitet||ppMatDefault[a.material]||540;
+        const ppWork={"Standardflis (30x30–60x60)":608,"Storformat (60x120+)":742,"Mosaikk":878,"Naturstein":945}[a.material]||675;
         items.push({n:`Fliser (${area} m²)`,p:area*ppMat});
-        items.push({n:"Membran, fuge og tilbehør",p:area*120});
+        items.push({n:"Membran, fuge og tilbehør",p:area*162});
         workSteps.push({n:"Flislegging",h:area*ppWork/RATE});
       } else if(a.type==="Peis/Ildsted"){
-        items.push({n:"Peis/ildsted inkl. materiell",p:45000});
+        items.push({n:"Peis/ildsted inkl. materiell",p:60750});
         workSteps.push({n:"Montering peis",h:40000/RATE});
       } else if(a.type==="Pipe-rehabilitering"){
-        items.push({n:"Innstøpingsrør/betonering",p:18000});
+        items.push({n:"Innstøpingsrør/betonering",p:24300});
         workSteps.push({n:"Pipe-rehab",h:16000/RATE});
       } else if(a.type==="Murvegg (inne/ute)"){
         const steinpris=a.steinkvalitet||650;
@@ -908,19 +910,19 @@ const DB = {
       } else if(a.type==="Belegningsstein"){
         const betonpris=a.betonkvalitet||280;
         items.push({n:`Belegningsstein (${area} m²)`,p:area*betonpris});
-        items.push({n:"Grus/pukk bærelag (15cm)",p:area*180});
-        items.push({n:"Geotekstil/kantstein",p:area*60});
+        items.push({n:"Grus/pukk bærelag (15cm)",p:area*243});
+        items.push({n:"Geotekstil/kantstein",p:area*81});
         workSteps.push({n:"Grunnarbeid + legging belegningsstein",h:area*1.1});
       } else if(a.type==="Naturstein"){
         const natpris=a.natursteinkvalitet||900;
         items.push({n:`Naturstein (${area} m²)`,p:area*natpris});
-        items.push({n:"Sand/pukk bærelag",p:area*140});
+        items.push({n:"Sand/pukk bærelag",p:area*189});
         workSteps.push({n:"Legging naturstein",h:area*1.2});
       } else if(a.type==="Fugereparasjon"){
-        items.push({n:`Fugemasse og rens (${area} m²)`,p:area*80});
+        items.push({n:`Fugemasse og rens (${area} m²)`,p:area*108});
         workSteps.push({n:"Fugereparasjon",h:area*0.4});
       }
-      items.push({n:"Rigg/transport",p:5200});
+      items.push({n:"Rigg/transport",p:7020});
       return{title:`${a.type}`,items,work:workSteps}
     }
   },
@@ -930,9 +932,9 @@ const DB = {
     questions: [
       {id:"type",q:"Type bygg?",opts:["Bod (uisolert)","Bod (isolert)","Anneks (bostandard)"]},
       {id:"byggkvalitet",q:"Byggkvalitet / standard?",priceTiers:{
-        "Bod (uisolert)":{budget:{label:"Enkel — spon/finér",price:5500},standard:{label:"Standard — kledning",price:7500},premium:{label:"Premium — ferdigbehandlet",price:10000}},
-        "Bod (isolert)":{budget:{label:"Standard — mineralull",price:8000},standard:{label:"Middels — trefiber+kledning",price:12000},premium:{label:"Premium — isolert+panel",price:16000}},
-        "Anneks (bostandard)":{budget:{label:"Standard — enkel",price:10000},standard:{label:"Middels — isolert+panel",price:16000},premium:{label:"Premium — nøkkelferdig",price:22000}}
+        "Bod (uisolert)":{budget:{label:"Enkel — spon/finér",price:7425},standard:{label:"Standard — kledning",price:10125},premium:{label:"Premium — ferdigbehandlet",price:13500}},
+        "Bod (isolert)":{budget:{label:"Standard — mineralull",price:10800},standard:{label:"Middels — trefiber+kledning",price:16200},premium:{label:"Premium — isolert+panel",price:21600}},
+        "Anneks (bostandard)":{budget:{label:"Standard — enkel",price:13500},standard:{label:"Middels — isolert+panel",price:21600},premium:{label:"Premium — nøkkelferdig",price:29700}}
       },tierKey:"type",unit:"kr/m²"},
       {id:"storrelse",q:"Størrelse i m²?",opts:["5–10 m²","10–20 m²","20–30 m²","Over 30 m²"],midvals:{"5–10 m²":8,"10–20 m²":15,"20–30 m²":25,"Over 30 m²":40}},
       {id:"fundament",q:"Type fundament?",opts:["Betongplate","Ringmur","Påler/pilarer","Finnes allerede"]},
@@ -945,24 +947,24 @@ const DB = {
       const m2=a.storrelse_m2||areas[a.storrelse]||15;
 
       let baseLow,baseHigh;
-      if(a.type==="Bod (uisolert)"){baseLow=6000*m2;baseHigh=9500*m2}
-      else if(a.type==="Bod (isolert)"){baseLow=9500*m2;baseHigh=14500*m2}
-      else{baseLow=12000*m2;baseHigh=20000*m2}
+      if(a.type==="Bod (uisolert)"){baseLow=8100*m2;baseHigh=12825*m2}
+      else if(a.type==="Bod (isolert)"){baseLow=12825*m2;baseHigh=19575*m2}
+      else{baseLow=16200*m2;baseHigh=27000*m2}
 
       const baseMid=a.byggkvalitet?Math.round(a.byggkvalitet*m2):Math.round((baseLow+baseHigh)/2);
 
       let items=[{n:`${a.type} ~${m2} m²`,p:baseMid}];
       let workSteps=[{n:"Bygging komplett",h:baseMid*0.3/RATE}];
 
-      if(a.fundament==="Betongplate"){items.push({n:"Betongplate fundament",p:46000});workSteps.push({n:"Støping fundament",h:40000/RATE})}
-      else if(a.fundament==="Ringmur"){items.push({n:"Ringmur fundament",p:52000});workSteps.push({n:"Ringmur",h:45000/RATE})}
-      else if(a.fundament==="Påler/pilarer"){items.push({n:"Påler/pilarer fundament",p:29000});workSteps.push({n:"Påler/pilarer",h:25000/RATE})}
+      if(a.fundament==="Betongplate"){items.push({n:"Betongplate fundament",p:62100});workSteps.push({n:"Støping fundament",h:40000/RATE})}
+      else if(a.fundament==="Ringmur"){items.push({n:"Ringmur fundament",p:70200});workSteps.push({n:"Ringmur",h:45000/RATE})}
+      else if(a.fundament==="Påler/pilarer"){items.push({n:"Påler/pilarer fundament",p:39150});workSteps.push({n:"Påler/pilarer",h:25000/RATE})}
 
-      if(a.tak==="Saltak"){items.push({n:"Saltak (tillegg vs pulttak)",p:23000})}
-      if(a.dorvindu==="1 dør + 2 vinduer"){items.push({n:"Ekstra vindu",p:6500})}
-      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:26000});workSteps.push({n:"Elektriker",h:22500/RATE})}
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      if(a.tak==="Saltak"){items.push({n:"Saltak (tillegg vs pulttak)",p:31050})}
+      if(a.dorvindu==="1 dør + 2 vinduer"){items.push({n:"Ekstra vindu",p:8775})}
+      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:35100});workSteps.push({n:"Elektriker",h:22500/RATE})}
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`${a.type} — ~${m2} m², ${a.tak.toLowerCase()}`,items,work:workSteps}
     }
   },
@@ -979,19 +981,19 @@ const DB = {
     calc(a){
       const lengder={"Under 20m":15,"20–40m":30,"40–60m":50,"Over 60m":75};
       const lm=a.lengde_m2||lengder[a.lengde]||30;
-      const matPris={"Stål (standard)":{low:350,high:500},"Kobber":{low:800,high:1200},"Plast":{low:200,high:350}};
+      const matPris={"Stål (standard)":{low:473,high:675},"Kobber":{low:1080,high:1620},"Plast":{low:270,high:473}};
       const mp=matPris[a.material]||matPris["Stål (standard)"];
       const pplm=Math.round((mp.low+mp.high)/2);
 
       const nedlopCount=a.nedlop==="5+"?6:parseInt(a.nedlop)||3;
-      const nedlopPris=2750;
+      const nedlopPris=3713;
 
       let items=[{n:`Takrenner ${a.material} (${lm} lm)`,p:lm*pplm},{n:`Nedløpsrør (${nedlopCount} stk)`,p:nedlopCount*nedlopPris}];
       let workSteps=[{n:"Montering takrenner",h:lm*0.25},{n:"Montering nedløp",h:nedlopCount*1.5}];
 
-      if(a.type==="Bytte takrenner"){items.push({n:`Riving gamle takrenner (${lm} lm)`,p:lm*100});workSteps.unshift({n:"Riving gamle takrenner",h:lm*0.1})}
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      if(a.type==="Bytte takrenner"){items.push({n:`Riving gamle takrenner (${lm} lm)`,p:lm*135});workSteps.unshift({n:"Riving gamle takrenner",h:lm*0.1})}
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`Takrenner — ${a.material}, ~${lm} lm`,items,work:workSteps}
     }
   },
@@ -1008,7 +1010,7 @@ const DB = {
     calc(a){
       const lengder={"Under 15m":10,"15–30m":22,"30–50m":40,"Over 50m":60};
       const lm=a.lengde_m2||lengder[a.lengde]||22;
-      const matPris={"Tre (gran/furu)":{low:400,high:600},"Kompositt/vedlikeholdsfritt":{low:600,high:900},"Aluminium":{low:800,high:1200}};
+      const matPris={"Tre (gran/furu)":{low:540,high:810},"Kompositt/vedlikeholdsfritt":{low:810,high:1215},"Aluminium":{low:1080,high:1620}};
       const mp=matPris[a.material]||matPris["Tre (gran/furu)"];
       const pplm=Math.round((mp.low+mp.high)/2);
 
@@ -1018,12 +1020,12 @@ const DB = {
       let items=[{n:`${typeLabel} ${a.material} (~${effLm} lm)`,p:effLm*pplm}];
       let workSteps=[{n:`Montering ${typeLabel.toLowerCase()}`,h:effLm*0.25}];
 
-      if(a.maling==="Grunnet + 2 strøk"){items.push({n:`Maling grunnet + 2 strøk (${effLm} lm)`,p:effLm*150});workSteps.push({n:"Maling",h:effLm*0.1})}
+      if(a.maling==="Grunnet + 2 strøk"){items.push({n:`Maling grunnet + 2 strøk (${effLm} lm)`,p:effLm*202});workSteps.push({n:"Maling",h:effLm*0.1})}
 
-      items.push({n:`Riving gamle (${effLm} lm)`,p:effLm*100});
+      items.push({n:`Riving gamle (${effLm} lm)`,p:effLm*135});
       workSteps.unshift({n:"Riving",h:effLm*0.08});
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`${typeLabel} — ${a.material}, ~${effLm} lm`,items,work:workSteps}
     }
   },
@@ -1034,9 +1036,9 @@ const DB = {
       {id:"type",q:"Type bygg?",opts:["Garasje (lukket)","Carport (åpen)","Garasje med bod"]},
       {id:"storrelse",q:"Størrelse?",opts:["Enkel (3×6m)","Dobbel (6×6m)","Stor (6×9m)"],midvals:{"Enkel (3×6m)":18,"Dobbel (6×6m)":36,"Stor (6×9m)":54}},
       {id:"kvalitetsniva",q:"Bygningskvalitet / standard?",priceTiers:{
-        "Garasje (lukket)":{budget:{label:"Standard uisolert",price:160000},standard:{label:"Middels isolert",price:250000},premium:{label:"Premium varmgarasje+klinker",price:380000}},
-        "Carport (åpen)":{budget:{label:"Standard bjelkelags-carport",price:70000},standard:{label:"Middels kledning+solid tak",price:110000},premium:{label:"Premium tre+glass design",price:160000}},
-        "Garasje med bod":{budget:{label:"Standard",price:210000},standard:{label:"Middels isolert",price:320000},premium:{label:"Premium ferdigstilt",price:480000}}
+        "Garasje (lukket)":{budget:{label:"Standard uisolert",price:216000},standard:{label:"Middels isolert",price:337500},premium:{label:"Premium varmgarasje+klinker",price:513000}},
+        "Carport (åpen)":{budget:{label:"Standard bjelkelags-carport",price:94500},standard:{label:"Middels kledning+solid tak",price:148500},premium:{label:"Premium tre+glass design",price:216000}},
+        "Garasje med bod":{budget:{label:"Standard",price:283500},standard:{label:"Middels isolert",price:432000},premium:{label:"Premium ferdigstilt",price:648000}}
       },tierKey:"type",unit:"kr (enkel str)"},
       {id:"fundament",q:"Type fundament?",opts:["Betongplate","Ringmur","Påler"]},
       {id:"port",q:"Type port?",opts:["Vippeport","Seksjonalport (elektrisk)","Ingen (carport)"]},
@@ -1055,21 +1057,21 @@ const DB = {
       if(kvalBase){
         // Scale from enkel size to actual size
         basePrice=Math.round(kvalBase*(isDobbel?2:isStor?3:1));
-      } else if(isCarport){basePrice=isDobbel?130000:isStor?170000:80000}
-      else if(isolert){basePrice=isDobbel?400000:isStor?550000:275000}
-      else{basePrice=isDobbel?300000:isStor?400000:175000}
+      } else if(isCarport){basePrice=isDobbel?175500:isStor?229500:108000}
+      else if(isolert){basePrice=isDobbel?540000:isStor?742500:371250}
+      else{basePrice=isDobbel?405000:isStor?540000:236250}
       const stdM2=isDobbel?36:isStor?54:18;
       if(a.storrelse_m2&&a.storrelse_m2!==stdM2){basePrice=Math.round(basePrice*(a.storrelse_m2/stdM2))}
 
       let items=[{n:`${a.type} ~${m2} m²${isolert?" (isolert)":""}`,p:basePrice}];
       let workSteps=[{n:"Bygging komplett",h:basePrice*0.3/RATE}];
 
-      if(a.port==="Seksjonalport (elektrisk)"){items.push({n:"Seksjonalport (elektrisk)",p:34500});workSteps.push({n:"Montering port",h:8})}
-      else if(a.port==="Vippeport"){items.push({n:"Vippeport",p:17000});workSteps.push({n:"Montering port",h:5})}
+      if(a.port==="Seksjonalport (elektrisk)"){items.push({n:"Seksjonalport (elektrisk)",p:46575});workSteps.push({n:"Montering port",h:8})}
+      else if(a.port==="Vippeport"){items.push({n:"Vippeport",p:22950});workSteps.push({n:"Montering port",h:5})}
 
-      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:26000});workSteps.push({n:"Elektriker",h:22500/RATE})}
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      if(a.strom==="Ja"){items.push({n:"Elektrisk opplegg",p:35100});workSteps.push({n:"Elektriker",h:22500/RATE})}
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`${a.type} — ${a.storrelse}, ~${m2} m²${isolert?" (isolert)":""}`,items,work:workSteps}
     }
   },
@@ -1091,9 +1093,9 @@ const DB = {
     questions: [
       {id:"kvalitet",q:"Hvilken standard ønsker du?",priceTiers:{
         "_default":{
-          budget:{label:"Standard — Grus/singel (rask, enkel)",price:380},
-          standard:{label:"Medium — Asfalt eller belegningsstein",price:1200},
-          premium:{label:"Premium — Naturstein/granittbelegning",price:2400}
+          budget:{label:"Standard — Grus/singel (rask, enkel)",price:513},
+          standard:{label:"Medium — Asfalt eller belegningsstein",price:1620},
+          premium:{label:"Premium — Naturstein/granittbelegning",price:3240}
         }
       },tierKey:"_default",unit:"kr/m²"},
       {id:"area",q:"Areal (m²)?",opts:["Under 30 m²","30–60 m²","60–100 m²","Over 100 m²"],midvals:{"Under 30 m²":20,"30–60 m²":45,"60–100 m²":80,"Over 100 m²":130}},
@@ -1109,18 +1111,18 @@ const DB = {
       let items=[{n:`Innkjørsel — ${typeLabel} (${m2} m²)`,p:m2*mp}];
       let work=[{n:`Legging ${typeLabel}`,h:m2*leggTid}];
       if(a.grunnarbeid==="Ja"){
-        items.push({n:"Grunnarbeid (graving, fylling, komprimering)",p:m2*380});
-        items.push({n:"Rigg/transport maskin",p:5000});
+        items.push({n:"Grunnarbeid (graving, fylling, komprimering)",p:m2*513});
+        items.push({n:"Rigg/transport maskin",p:6750});
         work.push({n:"Maskinarbeid grunnarbeid",h:m2*0.2});
       } else {
-        items.push({n:"Rigg/transport",p:5200});
+        items.push({n:"Rigg/transport",p:7020});
       }
       if(a.kantstein==="Ja"){
         const lm=Math.round(Math.sqrt(m2)*4*0.65);
-        items.push({n:`Kantstein (~${lm} lm)`,p:lm*520});
+        items.push({n:`Kantstein (~${lm} lm)`,p:lm*702});
         work.push({n:"Montering kantstein",h:lm*0.15});
       }
-      items.push({n:"Avfallshåndtering",p:2500});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`Innkjørsel — ${typeLabel}, ~${m2} m²`,items,work}
     }
   },
@@ -1130,9 +1132,9 @@ const DB = {
     questions: [
       {id:"kvalitet",q:"Hvilken type støttemur? (pris per lm ved 1m høyde)",priceTiers:{
         "_default":{
-          budget:{label:"Standard — Leca-blokk (enkel montering)",price:2800},
-          standard:{label:"Medium — Betong støpt (solid og varig)",price:4500},
-          premium:{label:"Premium — Naturstein (estetisk, håndverk)",price:7000}
+          budget:{label:"Standard — Betongblokk (enkel montering)",price:3780},
+          standard:{label:"Medium — Betong støpt (solid og varig)",price:6075},
+          premium:{label:"Premium — Naturstein (estetisk, håndverk)",price:9450}
         }
       },tierKey:"_default",unit:"kr/lm"},
       {id:"lengde",q:"Lengde (løpemeter)?",opts:["Under 5 lm","5–10 lm","10–20 lm","Over 20 lm"],midvals:{"Under 5 lm":4,"5–10 lm":7,"10–20 lm":15,"Over 20 lm":28}},
@@ -1145,7 +1147,7 @@ const DB = {
       // Basispris per lm (ved 1m høyde) — utled fra prisnivå
       const bp=a.kvalitet||4500;
       let typeLabel;
-      if(bp<=3200){typeLabel="Leca-blokk"}
+      if(bp<=3200){typeLabel="Betongblokk"}
       else if(bp>=6000){typeLabel="Naturstein"}
       else{typeLabel="Betong støpt"}
       const hoydeMult={"Under 1m":0.7,"1–2m":1.35,"Over 2m":2.5};
@@ -1154,11 +1156,11 @@ const DB = {
       let items=[{n:`Støttemur ${typeLabel} (~${lm} lm, ${a.hoyde})`,p:Math.round(lm*bp*hm)}];
       let work=[{n:"Graving og fundamentering",h:lm*1.2},{n:`Bygging støttemur ${typeLabel}`,h:lm*at}];
       if(a.drenering==="Ja"){
-        items.push({n:"Dreneringsgrus og drensrør bak mur",p:lm*850});
+        items.push({n:"Dreneringsgrus og drensrør bak mur",p:lm*1148});
         work.push({n:"Dreneringsarbeid",h:lm*0.6});
       }
-      items.push({n:"Rigg/transport maskin",p:5000});
-      items.push({n:"Avfallshåndtering/opprydding",p:2500});
+      items.push({n:"Rigg/transport maskin",p:6750});
+      items.push({n:"Avfallshåndtering/opprydding",p:3375});
       let extra="";
       if(a.hoyde==="Over 2m") extra=`<div style="margin-top:8px;padding:8px 12px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);border-radius:10px;font-size:13px;color:#e74c3c">⚠️ Murer over 2m krever beregning fra ingeniør (+10–20 000 kr)</div>`;
       return{title:`Støttemur — ${typeLabel}, ~${lm} lm (${a.hoyde})`,items,work,extra}
@@ -1170,9 +1172,9 @@ const DB = {
     questions: [
       {id:"kvalitet",q:"Hvilken standard på gjerdet?",priceTiers:{
         "_default":{
-          budget:{label:"Standard — Netting/sperregjerde",price:650},
-          standard:{label:"Medium — Tre (impregnert/panel)",price:1250},
-          premium:{label:"Premium — Smijern eller aluminium",price:2700}
+          budget:{label:"Standard — Netting/sperregjerde",price:878},
+          standard:{label:"Medium — Tre (impregnert/panel)",price:1688},
+          premium:{label:"Premium — Smijern eller aluminium",price:3645}
         }
       },tierKey:"_default",unit:"kr/lm"},
       {id:"lengde",q:"Lengde (løpemeter)?",opts:["Under 10 lm","10–25 lm","25–50 lm","Over 50 lm"],midvals:{"Under 10 lm":8,"10–25 lm":18,"25–50 lm":38,"Over 50 lm":65}},
@@ -1190,14 +1192,14 @@ const DB = {
       let items=[{n:`Gjerde ${typeLabel} ${a.hoyde} (~${lm} lm)`,p:Math.round(lm*mp*hf)}];
       let work=[{n:"Graving stolpefundament",h:lm*0.2},{n:`Montering gjerde ${typeLabel}`,h:lm*monteringTime}];
       if(a.port==="Enkel gangport"){
-        items.push({n:"Enkel gangport inkl. beslag/lås",p:7500});
+        items.push({n:"Enkel gangport inkl. beslag/lås",p:10125});
         work.push({n:"Montering gangport",h:3.5});
       } else if(a.port==="Dobbel kjøreport"){
-        items.push({n:"Dobbel kjøreport (manuell)",p:28000});
+        items.push({n:"Dobbel kjøreport (manuell)",p:37800});
         work.push({n:"Montering kjøreport",h:9});
       }
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering",p:2500});
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering",p:3375});
       return{title:`Gjerde ${typeLabel} — ~${lm} lm, ${a.hoyde}`,items,work}
     }
   },
@@ -1207,9 +1209,9 @@ const DB = {
     questions: [
       {id:"kvalitet",q:"Hvilken standard på pergola?",priceTiers:{
         "_default":{
-          budget:{label:"Standard — Enkel tre, åpen (uten tak)",price:3200},
-          standard:{label:"Medium — Tre med polykarbonat-/tekstiltak",price:5500},
-          premium:{label:"Premium — Aluminium med glastak og finish",price:9000}
+          budget:{label:"Standard — Enkel tre, åpen (uten tak)",price:4320},
+          standard:{label:"Medium — Tre med polykarbonat-/tekstiltak",price:7425},
+          premium:{label:"Premium — Aluminium med glastak og finish",price:12150}
         }
       },tierKey:"_default",unit:"kr/m²"},
       {id:"area",q:"Størrelse (m²)?",opts:["Under 10 m²","10–20 m²","20–30 m²","Over 30 m²"],midvals:{"Under 10 m²":8,"10–20 m²":15,"20–30 m²":25,"Over 30 m²":40}},
@@ -1224,14 +1226,14 @@ const DB = {
       else if(mp<=6500){typeLabel="Tre";takLabel="m/polykarbonat-/tekstiltak";monteringTime=0.65}
       else{typeLabel="Aluminium";takLabel="m/glastak og finish";monteringTime=0.8}
       let items=[{n:`Pergola ${typeLabel} — ${takLabel} (${m2} m²)`,p:m2*mp}];
-      items.push({n:"Fundament/forankring",p:m2*220});
+      items.push({n:"Fundament/forankring",p:m2*297});
       let work=[{n:"Fundamentering",h:m2*0.2},{n:`Montering pergola ${typeLabel}`,h:m2*monteringTime}];
       if(a.belysning==="Ja"){
-        items.push({n:"Belysning/strømpunkt (LED + stikk)",p:4200});
+        items.push({n:"Belysning/strømpunkt (LED + stikk)",p:5670});
         work.push({n:"El-arbeid belysning",h:3.5});
       }
-      items.push({n:"Rigg/transport",p:5200});
-      items.push({n:"Avfallshåndtering/opprydding",p:2500});
+      items.push({n:"Rigg/transport",p:7020});
+      items.push({n:"Avfallshåndtering/opprydding",p:3375});
       return{title:`Pergola ${typeLabel} ${takLabel} — ~${m2} m²`,items,work}
     }
   },
@@ -1241,9 +1243,9 @@ const DB = {
     questions: [
       {id:"kvalitet",q:"Type og omfang grunnarbeid?",priceTiers:{
         "_default":{
-          budget:{label:"Standard — Planering/grusing (minigraver)",price:320},
-          standard:{label:"Medium — Graving og fylling (gravemaskin)",price:750},
-          premium:{label:"Premium — Fjellsprengning/bergskjæring",price:3800}
+          budget:{label:"Standard — Planering/grusing (minigraver)",price:432},
+          standard:{label:"Medium — Graving og fylling (gravemaskin)",price:1013},
+          premium:{label:"Premium — Fjellsprengning/bergskjæring",price:5130}
         }
       },tierKey:"_default",unit:"kr/m² el m³"},
       {id:"areal",q:"Omfang (m² for planering / m³ for graving)?",opts:["Under 30","30–80","80–150","Over 150"],midvals:{"Under 30":20,"30–80":55,"80–150":115,"Over 150":200}},
@@ -1260,18 +1262,71 @@ const DB = {
       let items=[{n:`${typeLabel} (~${vol} ${unit})`,p:Math.round(vol*mp)}];
       let work=[{n:`Maskinarbeid (${maskinLabel})`,h:vol*arbeidstime}];
       if(a.bortkjoring==="Ja"){
-        items.push({n:`Bortkjøring masser (~${vol} ${unit})`,p:Math.round(vol*480)});
-        items.push({n:"Leiebil/container",p:3800});
+        items.push({n:`Bortkjøring masser (~${vol} ${unit})`,p:Math.round(vol*648)});
+        items.push({n:"Leiebil/container",p:5130});
         work.push({n:"Lasting og transport",h:vol*0.08});
       }
       items.push({n:`Rigg/mobilisering ${maskinLabel}`,p:rigg});
-      items.push({n:"Avfallshåndtering/deponering",p:2500});
+      items.push({n:"Avfallshåndtering/deponering",p:3375});
       return{title:`Grunnarbeid — ${typeLabel}, ~${vol} ${unit}`,items,work}
     }
   }
 };
 
 const RATE=1200;
+
+// ─── Synergi-matrise ───
+const SYNERGIES = {
+  vindu: {
+    pairs: ["kledning","maling","vindskier","takrenner"],
+    reason: "Stillas er allerede oppe",
+    savings: 0.40,
+    riggDeling: true
+  },
+  kledning: {
+    pairs: ["vindu","maling","vindskier","takrenner"],
+    reason: "Stillas er allerede oppe og kledning er demontert",
+    savings: 0.35,
+    riggDeling: true
+  },
+  maling: {
+    pairs: ["vindu","kledning","vindskier"],
+    reason: "Stillas/lift er allerede på plass",
+    savings: 0.30,
+    riggDeling: true
+  },
+  terrasse: {
+    pairs: ["trapp","gjerde_port","pergola"],
+    reason: "Materialer og rigg er på plass",
+    savings: 0.25,
+    riggDeling: true
+  },
+  bad: {
+    pairs: ["gulv","dor"],
+    reason: "Håndverkere er allerede i gang innvendig",
+    savings: 0.20,
+    riggDeling: false
+  },
+  tak: {
+    pairs: ["takrenner","vindskier","kledning"],
+    reason: "Vi er allerede oppe på taket",
+    savings: 0.35,
+    riggDeling: true
+  },
+  takrenner: {
+    pairs: ["vindskier","tak","kledning"],
+    reason: "Stillas/lift er allerede oppe",
+    savings: 0.30,
+    riggDeling: true
+  },
+  vindskier: {
+    pairs: ["takrenner","kledning","maling"],
+    reason: "Stillas er oppe og vi jobber langs taklinja",
+    savings: 0.30,
+    riggDeling: true
+  }
+};
+
 let state={step:"welcome",cat:null,answers:{},qIdx:0,currentEstimate:null,uploadedImg:null};
 let logoClicks=0,logoTimer=null;
 const chat=document.getElementById("chat");
@@ -1527,7 +1582,7 @@ async function submitJobDescription(){
 
 // analyzeJobWithAI(beskrivelse, files=[{base64,mime},...], extraContext="")
 async function analyzeJobWithAI(beskrivelse, files=[], extraContext=""){
-  const systemPrompt=`Du er en prisassistent for et norsk byggefirma. Analyser kundens beskrivelse og eventuelt bilder/video-frames.
+  const systemPrompt=`Du er en prisassistent for et profesjonelt norsk byggefirma. Du er løsningsorientert, kompetent og trygg i tonen. Analyser kundens beskrivelse og eventuelt bilder/video-frames.
 
 SVAR ALLTID med ren JSON (ingen markdown, ingen backtick-blokker):
 {
@@ -1899,32 +1954,11 @@ async function askQuestion(){
   const wrapper=el("div","");
 
   if(q.priceTiers){
+    // Auto-select standard tier — never show price choice to customer
     const tierKey=q.tierKey?state.answers[q.tierKey]:null;
     const tiers=q.priceTiers[tierKey]||q.priceTiers["_default"]||Object.values(q.priceTiers)[0];
-    const grp=el("div","btn-group");
-    ["budget","standard","premium"].forEach(tier=>{
-      if(!tiers[tier])return;
-      const t=tiers[tier];
-      const b=el("button","btn btn-outline btn-small",`${t.label} (${t.price} ${q.unit||"kr/m²"})`);
-      b.onclick=()=>{state.answers[q.id]=t.price;addMsg(`${t.label}: ${t.price} ${q.unit||"kr/m²"}`,"user");state.qIdx++;delay(200).then(()=>askQuestion())};
-      grp.appendChild(b);
-    });
-    wrapper.appendChild(grp);
-    const row=el("div","m2-input-row");
-    const pInp=document.createElement("input");
-    pInp.type="number";pInp.min="1";pInp.max="9999";pInp.step="1";pInp.placeholder="—";
-    const pBtn=document.createElement("button");
-    pBtn.className="m2-ok-btn";pBtn.textContent="OK ✓";
-    const pLbl=document.createElement("span");pLbl.className="m2-label";pLbl.textContent="Eller skriv inn:";
-    const pUnit=document.createElement("span");pUnit.className="m2-unit";pUnit.textContent=q.unit||"kr/m²";
-    row.append(pLbl,pInp,pUnit,pBtn);
-    wrapper.appendChild(row);
-    await botSay(q.q,wrapper);
-    {
-      const submitPrice=()=>{const val=parseFloat(pInp.value);if(val>0){state.answers[q.id]=val;addMsg(`${val} ${q.unit||"kr/m²"}`,"user");state.qIdx++;delay(200).then(()=>askQuestion())}};
-      pInp.addEventListener("keydown",e=>{if(e.key==="Enter"&&pInp.value){e.preventDefault();submitPrice()}});
-      pBtn.addEventListener("click",()=>{if(pInp.value)submitPrice()});
-    }
+    const t=tiers["standard"]||Object.values(tiers)[1]||Object.values(tiers)[0];
+    if(t){state.answers[q.id]=t.price;state.qIdx++;await askQuestion();return;}
     return;
   }
 
@@ -2098,7 +2132,7 @@ async function generateEstimate(){
     let scaffPrice,scaffLabel;
     if(state.scaffold.type==="Stillas"){
       const sLen=Math.max(1,Math.min(100,state.scaffold.length||10));
-      const sBase=sLen*2500;
+      const sBase=sLen*3375;
       const sHeightMult=sh>10?2:sh>6?1.5:1;
       scaffPrice=Math.round(sBase*sHeightMult);
       scaffLabel=`Stillas (${sh}m × ${sLen}lm)`;
@@ -2157,27 +2191,24 @@ async function generateEstimate(){
   altBtn.onclick=()=>{altBtn.remove();showAlternatives()};
   const altWrap=el("div","msg bot");altWrap.appendChild(altBtn);altWrap.style.maxWidth="95%";
   chat.appendChild(altWrap);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
-  showFormalQuoteStep();
+  if(state.synergyBase){showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
 function showLeadForm(){
   state.step="lead";
 
-  // Cal.com booking option
-  const calWrapper=el("div","");
-  calWrapper.style.cssText="margin-bottom:16px;padding:14px;background:rgba(239,16,6,.06);border:1.5px solid rgba(239,16,6,.2);border-radius:16px";
-  calWrapper.innerHTML=`<p style="font-size:14px;color:var(--text-dim);margin-bottom:10px">📅 Foretrekker du å booke et tidspunkt selv?</p>`;
-  const calBtn=el("button","btn btn-primary","📅 Book tidspunkt");
-  calBtn.style.cssText="width:100%;margin-bottom:8px;min-height:52px;font-size:15px;border-radius:14px";
-  calBtn.onclick=()=>window.open(CAL_URL,"_blank");
-  const ringBtn=el("button","btn btn-outline","📞 Nei, ring meg");
+  // Videobefaring-melding og valgknapper
+  const infoBox=el("div","");
+  infoBox.style.cssText="padding:14px;background:rgba(239,16,6,.06);border:1.5px solid rgba(239,16,6,.2);border-radius:16px;margin-bottom:12px;font-size:14px;line-height:1.7";
+  infoBox.innerHTML=`Neste steg er en kort videobefaring (15 min) der vi gjennomgår jobben sammen.<br><br>
+    <strong>Videobefaring koster 1 500 kr</strong> som trekkes fra totalprisen ved signert avtale.<br><br>
+    Etter videobefaringen får du endelig pris og kan bestemme om du vil gå videre.`;
+
+  const bookBtn=el("button","btn btn-primary","📹 Book videobefaring");
+  bookBtn.style.cssText="width:100%;margin-bottom:8px;min-height:52px;font-size:15px;border-radius:14px";
+
+  const ringBtn=el("button","btn btn-outline","📞 Ring oss heller");
   ringBtn.style.cssText="width:100%;min-height:48px;font-size:15px;border-radius:14px";
-  ringBtn.onclick=()=>{
-    calWrapper.style.display="none";
-    formWrapper.style.display="block";
-  };
-  calWrapper.appendChild(calBtn);
-  calWrapper.appendChild(ringBtn);
 
   const formWrapper=el("div","");
   formWrapper.style.display="none";
@@ -2185,23 +2216,37 @@ function showLeadForm(){
   form.innerHTML=`
     <input type="text" id="leadName" placeholder="Navn" autocomplete="name">
     <input type="tel" id="leadPhone" placeholder="Telefon" autocomplete="tel">
-    <input type="email" id="leadEmail" placeholder="E-post (valgfritt)" autocomplete="email">
+    <input type="email" id="leadEmail" placeholder="E-post" autocomplete="email">
   `;
-  const btn=el("button","btn btn-primary","📨 Send kontaktinfo");
+  const btn=el("button","btn btn-primary","📨 Send — vi tar kontakt");
   btn.style.marginTop="4px";
   btn.onclick=submitLead;
   form.appendChild(btn);
-
-  const skip=el("button","btn btn-outline","👍 Nei takk, bare estimat");
-  skip.style.marginTop="6px";
-  skip.onclick=()=>{addMsg("Nei takk, bare estimat","user");restart()};
-  form.appendChild(skip);
-
   formWrapper.appendChild(form);
 
+  const phoneWrapper=el("div","");
+  phoneWrapper.style.cssText="display:none;padding:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(239,16,6,.2);border-radius:16px;font-size:15px;text-align:center";
+  phoneWrapper.innerHTML=`Ring oss direkte:<br><a href="tel:${PHONE_NUMBER.replace(/\s/g,'')}" style="color:var(--accent);font-size:20px;font-weight:700;text-decoration:none">📞 ${PHONE_NUMBER}</a>`;
+
+  bookBtn.onclick=()=>{
+    addMsg("📹 Book videobefaring","user");
+    bookBtn.style.display="none";
+    ringBtn.style.display="none";
+    formWrapper.style.display="block";
+  };
+  ringBtn.onclick=()=>{
+    addMsg("📞 Ring oss heller","user");
+    bookBtn.style.display="none";
+    ringBtn.style.display="none";
+    phoneWrapper.style.display="block";
+  };
+
   const d=el("div","msg bot");
-  d.appendChild(calWrapper);
+  d.appendChild(infoBox);
+  d.appendChild(bookBtn);
+  d.appendChild(ringBtn);
   d.appendChild(formWrapper);
+  d.appendChild(phoneWrapper);
   d.style.maxWidth="95%";
   chat.appendChild(d);
   chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
@@ -2219,13 +2264,13 @@ async function submitLead(){
   localStorage.setItem("industrielleLeads",JSON.stringify(leads));
 
   addMsg(`${name}, ${phone}${email?", "+email:""}`,"user");
-  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi tar kontakt innen 24 timer med et uforpliktende tilbud.<br><br>Ha en fin dag! 🏗️`);
+  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi sender deg en lenke til videobefaring innen 24 timer.<br><br>Har du spørsmål i mellomtiden? Ring oss på <a href="tel:${PHONE_NUMBER.replace(/\s/g,'')}" style="color:var(--accent)">${PHONE_NUMBER}</a> 🏗️`);
   await delay(1500);
   restart();
 }
 
 async function restart(){
-  state={step:"welcome",cat:null,answers:{},qIdx:0,currentEstimate:null,uploadedImg:null,scaffold:null,scaffoldDone:false,leadExtra:null,aiResult:null,aiFollowup:null,aiFollowupAnswers:[],pendingImageBase64:null,pendingImageMime:null,jobDescText:null};
+  state={step:"welcome",cat:null,answers:{},qIdx:0,currentEstimate:null,uploadedImg:null,scaffold:null,scaffoldDone:false,leadExtra:null,aiResult:null,aiFollowup:null,aiFollowupAnswers:[],pendingImageBase64:null,pendingImageMime:null,jobDescText:null,synergyBase:null,synergyDiscount:0,synergyRiggCost:0};
   await botSay("Har du en annen jobb du vil ha estimat på? 👇");
   askJobDescription();
 }
@@ -2294,15 +2339,6 @@ function renderWinConfig(){
     const floorColor=c.floorLevel==="1"?"#2ecc71":"#f39c12";
     html+=`<div style="margin-top:4px;font-size:12px;color:${floorColor}">✓ ${floorSub[c.floorLevel]||""}</div>`;
   }
-
-  const floorSel=c.floorLevel||"1";
-  html+=`<div class="win-section-title" style="margin-top:10px">Hvilken etasje er vinduene i?</div>
-  <div class="btn-group" style="margin-top:4px">`;
-  [["1. etasje","1"],["2. etasje","2"],["Blanding","mix"]].forEach(([label,val])=>{
-    const active=floorSel===val?' style="background:var(--accent);color:var(--text-dark);border-color:var(--accent)"':"";
-    html+=`<button class="btn btn-outline btn-small"${active} onclick="winFloorPick('${val}')">${label}</button>`;
-  });
-  html+=`</div>`;
 
   html+=`<div class="toggle-row">
     <label for="sameToggle">Alle vinduer har samme størrelse</label>
@@ -2459,7 +2495,7 @@ function winBalcUpd(field,val){
 function winFloorPick(val){
   const c=state.winConfig;
   c.floorLevel=val;
-  if(val==="2"||val==="blanding"){
+  if(val==="2"||val==="blanding"||val==="mix"){
     c.scaffold=true;
     if(!c.scaffoldHeight||c.scaffoldHeight<4)c.scaffoldHeight=val==="2"?5:4;
     if(!c.scaffoldLength||c.scaffoldLength<5)c.scaffoldLength=10;
@@ -2474,15 +2510,6 @@ function winScaffUpd(field,val){
   if(field==="type")c.scaffoldType=val;
   else if(field==="height")c.scaffoldHeight=parseFloat(val)||4;
   else if(field==="length")c.scaffoldLength=parseFloat(val)||10;
-  renderWinConfig();
-}
-function winFloorPick(val){
-  const c=state.winConfig;
-  c.floorLevel=val;
-  if(val==="2"||val==="mix"){
-    c.scaffoldHeight=4;
-    c.scaffold=true;
-  }
   renderWinConfig();
 }
 function winGroundPick(g){state.winConfig.ground=g;renderWinConfig()}
@@ -2532,16 +2559,16 @@ async function winCalculate(){
     const adjMat=Math.round(p.mat*km);
     const winMat=adjMat*c.count;
     const winHrs=p.hrs*c.count;
-    const fugeMat=450*c.count;
+    const fugeMat=608*c.count;
     const glassTillegg=is3lag?1500*c.count:0;
     const extraTillegg=tilleggPerVindu*c.count;
     items.push({n:`${c.count}× Vindu ${w.type} ${c.karmtype} (${w.w}×${w.h}cm)`,p:winMat});
     if(glassTillegg>0)items.push({n:`3-lags glass (${c.count} stk)`,p:glassTillegg});
     if(extraTillegg>0)items.push({n:`Tilleggsfunksjoner (${c.count} stk)`,p:extraTillegg});
     items.push({n:`Isolasjon/fuge (${c.count} stk)`,p:fugeMat});
-    items.push({n:`Innfôring/listverk (${c.count} stk)`,p:800*c.count});
-    items.push({n:`Tettesikt teip/fug (${c.count} stk)`,p:350*c.count});
-    items.push({n:`Avfallshåndtering gamle vinduer`,p:300*c.count+1500});
+    items.push({n:`Innfôring/listverk (${c.count} stk)`,p:1080*c.count});
+    items.push({n:`Tettesikt teip/fug (${c.count} stk)`,p:473*c.count});
+    items.push({n:`Avfallshåndtering gamle vinduer`,p:405*c.count+2025});
     work.push({n:`Demontering + montering (${c.count} stk)`,h:winHrs});
     work.push({n:`Innfôring/listing (${c.count} stk)`,h:c.count*1});
     breakdownLines.push({label:`Vindu ${w.type} ${c.karmtype} ${w.w}×${w.h}cm`,qty:c.count,unit:fmt(adjMat),total:fmt(winMat)});
@@ -2558,20 +2585,20 @@ async function winCalculate(){
     const extraTillegg=tilleggPerVindu*c.count;
     if(glassTillegg>0)items.push({n:`3-lags glass (${c.count} stk)`,p:glassTillegg});
     if(extraTillegg>0)items.push({n:`Tilleggsfunksjoner (${c.count} stk)`,p:extraTillegg});
-    items.push({n:`Isolasjon/fuge (${c.count} stk)`,p:650*c.count});
-    items.push({n:`Innfôring/listverk (${c.count} stk)`,p:1200*c.count});
-    items.push({n:`Tettesikt teip/fug (${c.count} stk)`,p:550*c.count});
-    items.push({n:`Avfallshåndtering gamle vinduer`,p:400*c.count+2000});
+    items.push({n:`Isolasjon/fuge (${c.count} stk)`,p:878*c.count});
+    items.push({n:`Innfôring/listverk (${c.count} stk)`,p:1620*c.count});
+    items.push({n:`Tettesikt teip/fug (${c.count} stk)`,p:742*c.count});
+    items.push({n:`Avfallshåndtering gamle vinduer`,p:540*c.count+2700});
     work.push({n:`Innfôring/listing (${c.count} stk)`,h:c.count*1});
   }
-  items.push({n:"Rigg/transport",p:5200});
+  items.push({n:"Rigg/transport",p:7020});
 
   if(c.balcony){
     const dp=DOOR_PRICES[c.balconyType]||DOOR_PRICES["Enkel"];
     const doorMat=dp.base*c.balconyCount;
     const doorHrs=dp.hrs*c.balconyCount;
     items.push({n:`${c.balconyCount}× Balkongdør ${c.balconyType} (${c.balconyW}×${c.balconyH}cm)`,p:doorMat});
-    items.push({n:`Fuge/isolasjon balkongdør (${c.balconyCount} stk)`,p:550*c.balconyCount});
+    items.push({n:`Fuge/isolasjon balkongdør (${c.balconyCount} stk)`,p:742*c.balconyCount});
     work.push({n:`Balkongdør montering (${c.balconyCount} stk)`,h:doorHrs});
     breakdownLines.push({label:`Balkongdør ${c.balconyType}`,qty:c.balconyCount,unit:fmt(dp.base),total:fmt(doorMat)});
   }
@@ -2580,7 +2607,7 @@ async function winCalculate(){
     const h=c.scaffoldHeight;
     if(c.scaffoldType==="Stillas"){
       const sLen=Math.max(1,Math.min(100,c.scaffoldLength||10));
-      const sBase=sLen*2500;
+      const sBase=sLen*3375;
       const sHeightMult=h>10?2:h>6?1.5:1;
       const scaffPrice=Math.round(sBase*sHeightMult);
       items.push({n:`Stillas (${h}m × ${sLen}lm)`,p:scaffPrice});
@@ -2637,7 +2664,7 @@ async function winCalculate(){
   altBtn2.onclick=()=>{altBtn2.remove();showAlternatives()};
   const altWrap2=el("div","msg bot");altWrap2.appendChild(altBtn2);altWrap2.style.maxWidth="95%";
   chat.appendChild(altWrap2);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
-  showFormalQuoteStep();
+  if(state.synergyBase){showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
 // ─── Garderobe/Montering flow ───
@@ -2823,11 +2850,11 @@ async function gardCalculate(){
     const mult=szMult[sz]||1;
 
     const basePrices={
-      "PAX garderobe (IKEA)":{low:3000,high:8000,hrs:4},
-      "Kjøkken (IKEA)":{low:10000,high:25000,hrs:16},
-      "Bokhylle/reol (IKEA)":{low:1500,high:4000,hrs:2.5},
-      "TV-benk/møbler (IKEA)":{low:1000,high:3000,hrs:2},
-      "Annet IKEA-produkt":{low:1000,high:3000,hrs:2}
+      "PAX garderobe (IKEA)":{low:4050,high:10800,hrs:4},
+      "Kjøkken (IKEA)":{low:13500,high:33750,hrs:16},
+      "Bokhylle/reol (IKEA)":{low:2025,high:5400,hrs:2.5},
+      "TV-benk/møbler (IKEA)":{low:1350,high:4050,hrs:2},
+      "Annet IKEA-produkt":{low:1350,high:4050,hrs:2}
     };
     const bp=basePrices[gd.type]||basePrices["Annet IKEA-produkt"];
     const unitPrice=Math.round(((bp.low+bp.high)/2)*mult);
@@ -2837,7 +2864,7 @@ async function gardCalculate(){
     work.push({n:`Montering (${n} stk)`,h:unitHrs*n});
 
     if(gd.harKjopt===false){
-      items.push({n:"Innkjøp/henting av produkt",p:1500*n});
+      items.push({n:"Innkjøp/henting av produkt",p:2025*n});
     }
 
     title=`${gd.type} — ${sz}${n>1?` × ${n}`:""}`;
@@ -2845,18 +2872,18 @@ async function gardCalculate(){
 
   // Veggfeste
   if(gd.veggfeste){
-    items.push({n:"Veggfeste/forankring",p:isInnebygd?2500:1500*gd.antall});
+    items.push({n:"Veggfeste/forankring",p:isInnebygd?3375:2025*gd.antall});
     work.push({n:"Veggfeste-montering",h:isInnebygd?2:1*gd.antall});
   }
 
   // Belysning
   if(gd.belysning){
-    const lysPrice=isInnebygd?3500:2500;
+    const lysPrice=isInnebygd?4725:3375;
     items.push({n:"Belysning/stikk",p:lysPrice});
     work.push({n:"El-arbeid belysning",h:lysPrice/RATE});
   }
 
-  items.push({n:"Rigg/transport",p:3500});
+  items.push({n:"Rigg/transport",p:4725});
 
   let matTotal=0,workTotal=0;
   items.forEach(i=>matTotal+=i.p);
@@ -2880,7 +2907,7 @@ async function gardCalculate(){
     </div>`;
 
   await botSay(estHtml);
-  showFormalQuoteStep();
+  if(state.synergyBase){await showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
 // ─── Romoppussing flow ───
@@ -3141,19 +3168,19 @@ async function romCalculate(){
   }
 
   // Vaskerom extras
-  if(rd.membran){items.push({n:`Membran/våtrom (~${Math.round(m2+m2*3.2)} m²)`,p:Math.round((m2+m2*3.2)*350)});work.push({n:"Membran-arbeid",h:m2*0.5})}
-  if(rd.sluk){items.push({n:"Nytt sluk",p:4500});work.push({n:"Sluk-installasjon",h:3})}
-  if(rd.flytteVann){items.push({n:"Flytte vann/avløp",p:17000});work.push({n:"VVS-arbeid",h:15000/RATE})}
+  if(rd.membran){items.push({n:`Membran/våtrom (~${Math.round(m2+m2*3.2)} m²)`,p:Math.round((m2+m2*3.2)*473)});work.push({n:"Membran-arbeid",h:m2*0.5})}
+  if(rd.sluk){items.push({n:"Nytt sluk",p:6075});work.push({n:"Sluk-installasjon",h:3})}
+  if(rd.flytteVann){items.push({n:"Flytte vann/avløp",p:22950});work.push({n:"VVS-arbeid",h:15000/RATE})}
 
   // Garderobe
   if(rd.garderobe){
-    const gPrice=rd.garderobeWidth<=120?15000:rd.garderobeWidth<=180?22000:30000;
+    const gPrice=rd.garderobeWidth<=120?20250:rd.garderobeWidth<=180?29700:40500;
     items.push({n:`Innebygd garderobe (${rd.garderobeWidth}cm)`,p:gPrice});
     work.push({n:"Garderobe-montering",h:gPrice/RATE});
   }
 
-  items.push({n:"Rigg/transport",p:5200});
-  items.push({n:"Avfallshåndtering",p:2500});
+  items.push({n:"Rigg/transport",p:7020});
+  items.push({n:"Avfallshåndtering",p:3375});
 
   let matTotal=0,workTotal=0;
   items.forEach(i=>matTotal+=i.p);
@@ -3180,7 +3207,7 @@ async function romCalculate(){
     </div>`;
 
   await botSay(estHtml);
-  showFormalQuoteStep();
+  if(state.synergyBase){await showCombinedEstimate(state.currentEstimate);}else{showSynergyOffer(state.cat);}
 }
 
 // ─── 3 Prisklasse-alternativer ───
@@ -3202,7 +3229,7 @@ function getCategoryMaterials(catKey){
     kjokken:{standard:["Standard innredning (IKEA/enkel)","Standard laminat benkeplate","Enkel belysning"],anbefalt:["Middels innredning","Kvarts/granittbenke","LED belysning"],premium:["Premium skreddersydd","Marmor/naturstein benke","Integrert belysning"]},
     garasje:{standard:["Uisolert standard kledning","Vippeport","Standard fundament"],anbefalt:["Isolert kledning middels","Seksjonalport manuell","Betongplate"],premium:["Isolert kledning premium","Elektrisk seksjonalport","Armert betongplate"]},
     bod:{standard:["Enkel spon/finér","Standard vinduer/dør","Enkelt underlag"],anbefalt:["Kledning standard","Middels vinduer/dør","Betongfundament"],premium:["Premium kledning","Premium dør/vinduer","Armert betong + isolasjon"]},
-    stottemur:{standard:["Leca-blokk","Grus drenering","Enkel fundamentering"],anbefalt:["Betong støpt","Drensrør + grus","Armert fundament"],premium:["Naturstein","Full dreneringspakke","Dyp armert fundament"]},
+    stottemur:{standard:["Betongblokk","Grus drenering","Enkel fundamentering"],anbefalt:["Betong støpt","Drensrør + grus","Armert fundament"],premium:["Naturstein","Full dreneringspakke","Dyp armert fundament"]},
     innkjorsel:{standard:["Grus/singel","Enkel graving","Ingen kantstein"],anbefalt:["Asfalt/belegningsstein","Standard grunnarbeid","Betongkantstein"],premium:["Naturstein/granittbelegning","Full grunnarbeid","Natursteinkantstein"]},
     gjerde_port:{standard:["Netting/sperregjerde","Enkel gangport","Enkel stolpefundering"],anbefalt:["Tre (impregnert)","Middels gangport","Betongfundering"],premium:["Smijern/aluminium","Dobbel elektrisk port","Støpt betong"]},
     pergola:{standard:["Enkel tre, åpen","Betong ankerfeste","Enkel innfesting"],anbefalt:["Tre m/polykarbonat tak","Forsterket anker","Galvanisert beslag"],premium:["Aluminium m/glastak","Innstøpt fundament","Premium beslag"]},
@@ -3248,6 +3275,191 @@ async function showAlternatives(){
   await botSay(html);
 }
 
+// ─── Synergi-tilbud ───
+async function showSynergyOffer(currentCategory){
+  const syn=SYNERGIES[currentCategory];
+  if(!syn){showNegotiationButtons();return;}
+
+  // Finn pairs som finnes i DB
+  const validPairs=syn.pairs.filter(p=>DB[p]).slice(0,3);
+  if(validPairs.length===0){showNegotiationButtons();return;}
+
+  const savingsPct=Math.round(syn.savings*100);
+  const riggCost=Math.round(6000*syn.savings); // typisk 6000 kr rigg delt
+
+  // Lag liste over jobbtyper
+  const pairNames=validPairs.map(p=>DB[p].name||p).join(", ");
+
+  // Eksempel: første pair med ca-rabatt
+  const exPair=validPairs[0];
+  const exName=DB[exPair].name||exPair;
+
+  let synergyHtml=`💡 <strong>Visste du?</strong> Siden vi allerede <em>${syn.reason}</em>, kan du spare opptil <strong style="color:#4ade80">${savingsPct}%</strong> på <strong>${pairNames}</strong> hvis du gjør det samtidig.<br><br>Pakkerabatten tilsvarer typisk <strong style="color:#4ade80">~${fmt(riggCost)} kr spart</strong> på delt rigg/stillas.<br><br>Vil du legge til noe mens vi er i gang?`;
+
+  await botSay(synergyHtml);
+
+  // Vis synergiknapper
+  const wrap=el("div","msg bot");wrap.style.maxWidth="95%";
+  const grid=el("div","cat-grid");grid.style.cssText="margin-top:8px;gap:8px";
+
+  validPairs.forEach(pairKey=>{
+    const pairInfo=DB[pairKey];
+    const pairName=pairInfo.name||pairKey;
+    const pairIco=pairInfo.ico||"🔧";
+    const saving=fmt(riggCost);
+
+    const btn=el("button","cat-btn");
+    btn.innerHTML=`<span class="ico">${pairIco}</span><span>➕ ${pairName}<br><small style="color:#4ade80;font-size:11px">~${saving} kr spart</small></span>`;
+    btn.onclick=async()=>{
+      grid.querySelectorAll("button").forEach(b=>b.disabled=true);
+      addMsg(`Legg til ${pairName}`,"user");
+      // Lagre eksisterende estimat og start ny flyt
+      state.synergyBase=state.currentEstimate;
+      state.synergyDiscount=syn.savings;
+      state.synergyRiggCost=riggCost;
+      state.cat=pairKey;
+      state.answers={};
+      state.qIdx=0;
+      state.step="questions";
+      const pairCat=DB[pairKey];
+      await botSay(`${pairCat.ico||"🔧"} <strong>${pairName}</strong> — la meg stille noen raske spørsmål.`);
+      if(pairCat.custom && pairKey==="vindu"){
+        showWindowConfigurator();
+      } else {
+        askQuestion();
+      }
+    };
+    grid.appendChild(btn);
+  });
+
+  const btnNo=el("button","cat-btn back-btn");
+  btnNo.style.cssText="grid-column:1/-1";
+  btnNo.textContent="Nei takk, gå videre";
+  btnNo.onclick=()=>{
+    grid.querySelectorAll("button").forEach(b=>b.disabled=true);
+    addMsg("Nei takk, gå videre","user");
+    showNegotiationButtons();
+  };
+  grid.appendChild(btnNo);
+
+  wrap.appendChild(grid);
+  chat.appendChild(wrap);
+  chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+}
+
+// Vis kombinert estimat med pakkerabatt etter synergi-jobb
+async function showCombinedEstimate(newEst){
+  const base=state.synergyBase;
+  const discount=state.synergyDiscount||0;
+  const riggSaving=state.synergyRiggCost||0;
+  if(!base){return;}
+
+  const combinedTotal=base.total+newEst.total-riggSaving;
+  const allItems=[...base.items,...newEst.items];
+  const allWork=[...(base.work||[]),...(newEst.work||[])];
+
+  const matHtml=allItems.map(i=>`• ${i.n}`).join("<br>");
+  const workHtml=allWork.map(w=>`• ${w.n}`).join("<br>");
+  const estHtml=`
+    <div class="estimate">
+      <strong>📦 Pakketilbud — ${base.title} + ${newEst.title}</strong>
+      <h4>Materialer</h4>
+      ${matHtml}
+      <h4>Arbeid</h4>
+      ${workHtml}
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(74,222,128,.2);color:#4ade80;font-weight:600">✅ Pakkerabatt (delt rigg/stillas): -${fmt(riggSaving)} kr</div>
+      <div class="total">Totalt pakketilbud: ~${fmt(combinedTotal)} (eks. mva)</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhengers av befaring.</div>
+    </div>`;
+
+  state.currentEstimate={...newEst,total:combinedTotal,title:`${base.title} + ${newEst.title}`,items:allItems,work:allWork};
+  state.synergyBase=null;
+
+  await botSay(estHtml);
+  await botSay(`🎉 Med pakketilbudet sparer du <strong style="color:#4ade80">${fmt(riggSaving)} kr</strong> på delt rigg og stillas!`);
+  showNegotiationButtons();
+}
+
+// ─── Negotiation Flow ───
+async function showNegotiationButtons(){
+  const wrap=el("div","msg bot");wrap.style.maxWidth="95%";
+  const grp=el("div","btn-group");
+  grp.style.cssText="display:flex;flex-direction:column;gap:8px;margin-top:6px";
+
+  const btnOk=el("button","btn btn-primary","✅ Ser bra ut — gå videre");
+  btnOk.style.cssText="width:100%;font-size:15px;border-radius:14px;min-height:50px";
+  btnOk.onclick=()=>{
+    grp.querySelectorAll("button").forEach(b=>b.disabled=true);
+    addMsg("Ser bra ut — gå videre","user");
+    showFormalQuoteStep();
+  };
+
+  const btnCheap=el("button","btn btn-outline","💰 Det er litt dyrt");
+  btnCheap.style.cssText="width:100%;font-size:15px;border-radius:14px;min-height:50px";
+  btnCheap.onclick=async()=>{
+    grp.querySelectorAll("button").forEach(b=>b.disabled=true);
+    addMsg("Det er litt dyrt","user");
+    await botSay(`Jeg kan justere på to måter:<br><br>1️⃣ <strong>Redusere materialkvalitet</strong> — samme jobb, rimeligere materialer. Det betyr f.eks. standard istedenfor premium isolerglass, trykkimpregnert istedenfor hardtre, eller enklere beslag. Jobben blir den samme, men materialene har kortere levetid.<br><br>2️⃣ <strong>Redusere omfanget</strong> — f.eks. ta deler av jobben nå og resten senere. Samme kvalitet, men mindre arbeid.`);
+    showNegotiationOptions();
+  };
+
+  grp.appendChild(btnOk);
+  grp.appendChild(btnCheap);
+  wrap.appendChild(grp);
+  chat.appendChild(wrap);
+  chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+}
+
+function showNegotiationOptions(){
+  const wrap=el("div","msg bot");wrap.style.maxWidth="95%";
+  const grp=el("div","btn-group");
+  grp.style.cssText="display:flex;flex-direction:column;gap:8px;margin-top:6px";
+
+  const btnQual=el("button","btn btn-outline","🔩 Reduser kvalitet");
+  btnQual.style.cssText="width:100%;font-size:15px;border-radius:14px;min-height:50px";
+  btnQual.onclick=async()=>{
+    grp.querySelectorAll("button").forEach(b=>b.disabled=true);
+    addMsg("Reduser kvalitet","user");
+    const est=state.currentEstimate;
+    if(!est){await botSay("Fant ikke estimatdata. Prøv å starte på nytt.");return;}
+    // Reduce material items by 30%, keep work unchanged
+    const newMatTotal=Math.round(est.matTotal*0.7);
+    const newTotal=newMatTotal+est.workTotal;
+    const reducedItems=est.items.map(i=>({...i,p:Math.round((i.p||0)*0.7)}));
+    state.currentEstimate={...est,matTotal:newMatTotal,total:newTotal,items:reducedItems};
+    const matHtml=reducedItems.map(i=>`• ${i.n}`).join("<br>");
+    const workHtml=est.work.map(w=>`• ${w.n}`).join("<br>");
+    const estHtml=`
+      <div class="estimate">
+        <strong>🏗️ ${est.title} — justert estimat</strong>
+        <h4>Materialer (redusert kvalitet)</h4>
+        ${matHtml}
+        <h4>Arbeid</h4>
+        ${workHtml}
+        <div class="total">Totalt: ~${fmt(newTotal)} (eks. mva)</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic">⚠️ Estimat (±20%) — endelig pris avhenger av befaring.</div>
+      </div>`;
+    await botSay(estHtml);
+    await botSay("Her er justert estimat med rimeligere materialer. Merk: enklere materialer kan ha kortere levetid og kreve mer vedlikehold over tid.");
+    showFormalQuoteStep();
+  };
+
+  const btnScope=el("button","btn btn-outline","✂️ Reduser omfang");
+  btnScope.style.cssText="width:100%;font-size:15px;border-radius:14px;min-height:50px";
+  btnScope.onclick=async()=>{
+    grp.querySelectorAll("button").forEach(b=>b.disabled=true);
+    addMsg("Reduser omfang","user");
+    await botSay("Beskriv gjerne hva du ønsker å prioritere, så justerer jeg estimatet.");
+    state.step="scope_reduction";
+  };
+
+  grp.appendChild(btnQual);
+  grp.appendChild(btnScope);
+  wrap.appendChild(grp);
+  chat.appendChild(wrap);
+  chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
+}
+
 // ─── Formal Quote Step ───
 async function showFormalQuoteStep(){
   state.step="formal_quote";
@@ -3278,7 +3490,7 @@ async function showFormalQuoteStep(){
     addMsg("Nei takk, bare estimat","user");
     if(!state.leadExtra)state.leadExtra={};
     state.leadExtra.formalQuote=false;
-    botSay("Greit! Estimatet er ditt. 🏗️<br><br>Vil du ha et <strong>uforpliktende tilbud</strong>? Vi kommer på befaring og gir deg nøyaktig pris — gratis og uforpliktende.").then(()=>showLeadForm());
+    botSay("Estimatet er klart. 🏗️<br><br>Vil du gå videre med en <strong>videobefaring</strong>? Vi gjennomgår jobben sammen og gir deg endelig pris.").then(()=>showLeadForm());
   };
   grp.append(bY,bN);
   await botSay(infoHtml,grp);
@@ -3291,7 +3503,7 @@ async function askQuoteReason(){
     b.onclick=()=>{
       state.leadExtra.quoteReason=r.toLowerCase();
       addMsg(r,"user");
-      botSay("Flott! Legg igjen kontaktinfo så tar vi kontakt for å avtale befaring 📞").then(()=>showLeadForm());
+      botSay("Greit. Legg igjen kontaktinfo, så sender vi deg en lenke til videobefaring 📞").then(()=>showLeadForm());
     };
     grp.appendChild(b);
   });
@@ -3395,25 +3607,49 @@ async function askOtherFollowup(){
     });
     await botSay("📅 <strong>Når ønsker du å starte?</strong>",grp);
   } else {
-    await botSay("Supert! Legg igjen kontaktinfo så tar vi kontakt med et uforpliktende tilbud innen <strong>24 timer</strong> 🏗️📞");
+    await botSay("Greit. Neste steg er en kort videobefaring — legg igjen kontaktinfo så sender vi deg en lenke 🏗️");
     showOtherLeadForm();
   }
 }
 
 function showOtherLeadForm(){
   state.step="other_lead";
+
+  const infoBox=el("div","");
+  infoBox.style.cssText="padding:14px;background:rgba(239,16,6,.06);border:1.5px solid rgba(239,16,6,.2);border-radius:16px;margin-bottom:12px;font-size:14px;line-height:1.7";
+  infoBox.innerHTML=`Neste steg er en kort videobefaring (15 min) der vi gjennomgår jobben sammen.<br><br>
+    <strong>Videobefaring koster 1 500 kr</strong> som trekkes fra totalprisen ved signert avtale.<br><br>
+    Etter videobefaringen får du endelig pris og kan bestemme om du vil gå videre.`;
+
+  const bookBtn=el("button","btn btn-primary","📹 Book videobefaring");
+  bookBtn.style.cssText="width:100%;margin-bottom:8px;min-height:52px;font-size:15px;border-radius:14px";
+  const ringBtn=el("button","btn btn-outline","📞 Ring oss heller");
+  ringBtn.style.cssText="width:100%;min-height:48px;font-size:15px;border-radius:14px";
+
+  const formWrapper=el("div","");
+  formWrapper.style.display="none";
   const form=el("div","lead-form");
   form.innerHTML=`
     <input type="text" id="leadName" placeholder="Navn" autocomplete="name">
     <input type="tel" id="leadPhone" placeholder="Telefon" autocomplete="tel">
-    <input type="email" id="leadEmail" placeholder="E-post (valgfritt)" autocomplete="email">
+    <input type="email" id="leadEmail" placeholder="E-post" autocomplete="email">
   `;
-  const btn=el("button","btn btn-primary","📨 Send forespørsel");
+  const btn=el("button","btn btn-primary","📨 Send — vi tar kontakt");
   btn.style.marginTop="4px";
   btn.onclick=submitOtherLead;
   form.appendChild(btn);
+  formWrapper.appendChild(form);
+
+  const phoneWrapper=el("div","");
+  phoneWrapper.style.cssText="display:none;padding:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(239,16,6,.2);border-radius:16px;font-size:15px;text-align:center";
+  phoneWrapper.innerHTML=`Ring oss direkte:<br><a href="tel:${PHONE_NUMBER.replace(/\s/g,'')}" style="color:var(--accent);font-size:20px;font-weight:700;text-decoration:none">📞 ${PHONE_NUMBER}</a>`;
+
+  bookBtn.onclick=()=>{addMsg("📹 Book videobefaring","user");bookBtn.style.display="none";ringBtn.style.display="none";formWrapper.style.display="block";};
+  ringBtn.onclick=()=>{addMsg("📞 Ring oss heller","user");bookBtn.style.display="none";ringBtn.style.display="none";phoneWrapper.style.display="block";};
+
   const d=el("div","msg bot");
-  d.appendChild(form);d.style.maxWidth="95%";
+  d.appendChild(infoBox);d.appendChild(bookBtn);d.appendChild(ringBtn);d.appendChild(formWrapper);d.appendChild(phoneWrapper);
+  d.style.maxWidth="95%";
   chat.appendChild(d);chat.scrollTo({top:chat.scrollHeight,behavior:"smooth"});
 }
 
@@ -3426,7 +3662,7 @@ async function submitOtherLead(){
   let leads=JSON.parse(localStorage.getItem("industrielleLeads")||"[]");
   leads.push(lead);localStorage.setItem("industrielleLeads",JSON.stringify(leads));
   addMsg(`${name}, ${phone}${email?", "+email:""}`,"user");
-  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi tar kontakt innen 24 timer med et uforpliktende tilbud.<br><br>Ha en fin dag! 🏗️`);
+  await botSay(`<span class="checkmark">✅</span><br><br><strong>Takk, ${name}!</strong><br>Vi sender deg en lenke til videobefaring innen 24 timer.<br><br>Har du spørsmål i mellomtiden? Ring oss på <a href="tel:${PHONE_NUMBER.replace(/\s/g,'')}" style="color:var(--accent)">${PHONE_NUMBER}</a> 🏗️`);
   await delay(1500);restart();
 }
 
@@ -3455,6 +3691,9 @@ function sendText(){
     else botSay("Velg et av alternativene over 👆");
   } else if(state.step==="lead"){
     botSay("Fyll ut skjemaet over for å sende forespørselen! ☝️");
+  } else if(state.step==="scope_reduction"){
+    botSay("Takk for innspillet! For et justert estimat basert på prioriteringene dine — fyll ut kontaktskjemaet og vi tar en prat om hva som er viktigst for deg. 💬");
+    setTimeout(()=>showFormalQuoteStep(),600);
   }
 }
 
