@@ -3666,10 +3666,10 @@ function showNegotiationOptions(){
     addMsg("Reduser kvalitet","user");
     const est=state.currentEstimate;
     if(!est){await botSay("Fant ikke estimatdata. Prøv å starte på nytt.");return;}
-    // Reduce material items by 30%, keep work unchanged
-    const newMatTotal=Math.round(est.matTotal*0.7);
+    // Reduce material items by 12.5% (10-15% range), keep work unchanged
+    const newMatTotal=Math.round(est.matTotal*0.875);
     const newTotal=newMatTotal+est.workTotal;
-    const reducedItems=est.items.map(i=>({...i,p:Math.round((i.p||0)*0.7)}));
+    const reducedItems=est.items.map(i=>({...i,p:Math.round((i.p||0)*0.875)}));
     state.currentEstimate={...est,matTotal:newMatTotal,total:newTotal,items:reducedItems};
     state.negotiated=true;state.negotiatedPrice=newTotal;state.lastMatTotal=newMatTotal;state.lastTotalLow=Math.round(newTotal*0.9);state.lastTotalHigh=Math.round(newTotal*1.1);state.lastItems=reducedItems;
     const matHtml=reducedItems.map(i=>`• ${i.n}`).join("<br>");
@@ -3683,7 +3683,7 @@ function showNegotiationOptions(){
       </div>`;
     await botSay(estHtml);
     animatePriceEls();
-    await botSay("Her er justert estimat med rimeligere materialer. Merk: enklere materialer kan ha kortere levetid og kreve mer vedlikehold over tid.");
+    await botSay("Ved å velge standardmaterialer istedenfor premium kan vi redusere prisen med ca 10-15%. Dette innebærer f.eks. standard isolerglass istedenfor trelagsglass, trykkimpregnert istedenfor hardtre, eller enklere beslag. Jobben utføres likt — forskjellen er materialenes levetid og vedlikeholdsbehov.");
     showFormalQuoteStep();
   };
 
