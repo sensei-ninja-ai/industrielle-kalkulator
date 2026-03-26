@@ -3643,7 +3643,7 @@ async function showNegotiationButtons(){
   btnCheap.onclick=async()=>{
     grp.querySelectorAll("button").forEach(b=>b.disabled=true);
     addMsg("Det er litt dyrt","user");
-    await botSay(`Jeg kan justere på to måter:<br><br>1️⃣ <strong>Redusere materialkvalitet</strong> — samme jobb, rimeligere materialer. Det betyr f.eks. standard istedenfor premium isolerglass, trykkimpregnert istedenfor hardtre, eller enklere beslag. Jobben blir den samme, men materialene har kortere levetid.<br><br>2️⃣ <strong>Redusere omfanget</strong> — f.eks. ta deler av jobben nå og resten senere. Samme kvalitet, men mindre arbeid.`);
+    await botSay(`Jeg forstår — la meg se hva vi kan gjøre!<br><br>Det er to måter å justere på:<br><br>1️⃣ <strong>Enklere materialer</strong> — vi bruker gode standardmaterialer istedenfor premium. Jobben blir like bra, men materialene har litt kortere levetid.<br><br>2️⃣ <strong>Ta det i etapper</strong> — vi gjør det viktigste først, og resten kan vente til det passer bedre.`);
     showNegotiationOptions();
   };
 
@@ -3683,7 +3683,7 @@ function showNegotiationOptions(){
       </div>`;
     await botSay(estHtml);
     animatePriceEls();
-    await botSay("Ved å velge standardmaterialer istedenfor premium kan vi redusere prisen med ca 10-15%. Dette innebærer f.eks. standard isolerglass istedenfor trelagsglass, trykkimpregnert istedenfor hardtre, eller enklere beslag. Jobben utføres likt — forskjellen er materialenes levetid og vedlikeholdsbehov.");
+    await botSay("Vi bruker gode materialer som gjør jobben, men som ikke er toppkvalitet. Tenk det som forskjellen mellom en helt grei bil og en premiumbil — begge kjører deg dit du skal, men den ene varer litt lenger og trenger mindre stell. Dette gir en besparelse på ca 10-15%.");
     showFormalQuoteStep();
   };
 
@@ -3692,7 +3692,7 @@ function showNegotiationOptions(){
   btnScope.onclick=async()=>{
     grp.querySelectorAll("button").forEach(b=>b.disabled=true);
     addMsg("Reduser omfang","user");
-    await botSay("Beskriv gjerne hva du ønsker å prioritere, så justerer jeg estimatet.");
+    await botSay("Vi gjør deler av jobben nå og resten senere. For eksempel: ta vinduene i stua først, soverommene til neste år. Du sparer nå, og vi kan planlegge resten når det passer. Beskriv gjerne hva som er viktigst for deg, så finner vi en god løsning.");
     state.step="scope_reduction";
   };
 
