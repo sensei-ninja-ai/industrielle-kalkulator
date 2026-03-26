@@ -3683,7 +3683,7 @@ function showNegotiationOptions(){
       </div>`;
     await botSay(estHtml);
     animatePriceEls();
-    await botSay("Vi bruker gode materialer som gjør jobben, men som ikke er toppkvalitet. Tenk det som forskjellen mellom en helt grei bil og en premiumbil — begge kjører deg dit du skal, men den ene varer litt lenger og trenger mindre stell. Dette gir en besparelse på ca 10-15%.");
+    await botSay("Vi bruker gode standardmaterialer istedenfor premium. Like god jobb — materialene varer litt kortere, men gjør jobben helt fint. Dette gir en besparelse på ca 10-15%.");
     showFormalQuoteStep();
   };
 
@@ -3692,7 +3692,7 @@ function showNegotiationOptions(){
   btnScope.onclick=async()=>{
     grp.querySelectorAll("button").forEach(b=>b.disabled=true);
     addMsg("Reduser omfang","user");
-    await botSay("Vi gjør deler av jobben nå og resten senere. For eksempel: ta vinduene i stua først, soverommene til neste år. Du sparer nå, og vi kan planlegge resten når det passer. Beskriv gjerne hva som er viktigst for deg, så finner vi en god løsning.");
+    await botSay("Vi gjør det viktigste først, resten når det passer. Beskriv gjerne hva du vil prioritere, så justerer vi estimatet.");
     state.step="scope_reduction";
   };
 
