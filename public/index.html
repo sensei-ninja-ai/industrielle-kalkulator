@@ -3643,7 +3643,7 @@ async function showNegotiationButtons(){
   btnCheap.onclick=async()=>{
     grp.querySelectorAll("button").forEach(b=>b.disabled=true);
     addMsg("Det er litt dyrt","user");
-    await botSay(`Jeg forstår — la meg se hva vi kan gjøre!<br><br>Det er to måter å justere på:<br><br>1️⃣ <strong>Enklere materialer</strong> — vi bruker gode standardmaterialer istedenfor premium. Jobben blir like bra, men materialene har litt kortere levetid.<br><br>2️⃣ <strong>Ta det i etapper</strong> — vi gjør det viktigste først, og resten kan vente til det passer bedre.`);
+    await botSay(`To måter å justere på:<br><br>1️⃣ <strong>Standardmaterialer</strong> — god kvalitet, litt kortere levetid.<br><br>2️⃣ <strong>Dele opp jobben</strong> — ta det viktigste nå, resten senere.`);
     showNegotiationOptions();
   };
 
@@ -3683,7 +3683,7 @@ function showNegotiationOptions(){
       </div>`;
     await botSay(estHtml);
     animatePriceEls();
-    await botSay("Vi bruker gode standardmaterialer istedenfor premium. Like god jobb — materialene varer litt kortere, men gjør jobben helt fint. Dette gir en besparelse på ca 10-15%.");
+    await botSay("Standardmaterialer istedenfor premium — god kvalitet, kortere levetid. Besparelse ca 10-15%.");
     showFormalQuoteStep();
   };
 
